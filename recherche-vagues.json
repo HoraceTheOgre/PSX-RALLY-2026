@@ -1,0 +1,56 @@
+{
+  "waves": [
+    {
+      "searches": [
+        "car 3d physics c#",
+        "dirt roads 3D assets",
+        "Engine sounds game assets",
+        "nature pack 3d assets",
+        "psx assets"
+      ],
+      "urls": [
+        "https://github.com/ozawatomu/car-simulation-3d",
+        "https://www.cgtrader.com/3d-models/dirt-road",
+        "https://jreo.itch.io/jreo-sva",
+        "https://elegantcrow.itch.io/psx-retro-style-tree-pack",
+        "https://elegantcrow.itch.io/retro-psx-nature-pack",
+        "https://dripsone.itch.io/rocks-psx-low-poly",
+        "https://ggbot.itch.io/psx-style-cars",
+        "https://comp3interactive.itch.io/low-poly-human-mesh",
+        "https://elbolilloduro.itch.io/house",
+        "https://starkcrafts.itch.io/psx-forest-asset-collection-by-starkcrafts",
+        "https://valsekamerplant.itch.io/psx-style-urban-stacked-pack",
+        "https://elbolilloduro.itch.io/buildings",
+        "https://valsekamerplant.itch.io/psx-style-walls-fences",
+        "https://godgoldfear.itch.io/psx-industrial-environment-asset-pack",
+        "https://pizzadoggy.itch.io/psx-nature",
+        "https://cemckrc.itch.io/fps-arms-psx-style",
+        "https://drillimpact.itch.io/psx-first-person-arms-free",
+        "https://jashi-psx.itch.io/simple-character-psx-asset",
+        "https://druid-cz.itch.io/godot-psx-starter-kit",
+        "https://halfhuman.itch.io/ps1-winter-tree",
+        "https://ju5t1nj.itch.io/psx-plus-forest-pack",
+        "https://valsekamerplant.itch.io/psx-style-barriers",
+        "https://bowley3d.itch.io/psx-industrial-area-pack",
+        "https://elegantcrow.itch.io/retro-rigged-bigfoot"
+      ],
+      "keywords": [
+        {
+          "term": "3D Assets",
+          "type": "tech",
+          "description": "élements utilisables en jeu"
+        },
+        {
+          "term": "psx assets",
+          "type": "community",
+          "description": "élements 3D ressemblant les jeux 3D de la PS1 et PS2"
+        }
+      ]
+    },
+    {
+      "searches": [],
+      "urls": [],
+      "keywords": []
+    }
+  ]
+}
