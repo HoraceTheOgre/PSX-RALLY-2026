@@ -11,6 +11,6 @@ config_version=5
 [application]
 
 config/name="MATANE RALLY 2026"
-run/main_scene="uid://cv13np1v4e28u"
+run/main_scene="uid://ct8e66ismcixq"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
