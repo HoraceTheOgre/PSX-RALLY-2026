@@ -1,0 +1,74 @@
+[gd_scene load_steps=7 format=3 uid="uid://bxv5hu82mtkr3"]
+
+[ext_resource type="PackedScene" uid="uid://cvbpkkmuywbrq" path="res://Car 03/Car3Yellow.blend" id="1_exm1m"]
+[ext_resource type="ArrayMesh" uid="uid://bjdonv66eh6rm" path="res://Car 03/Car3.obj" id="2_qtatp"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_exm1m"]
+points = PackedVector3Array(0.12988977, 1.7189609, 0.888114, -1.0246279, 0.33637208, -1.1368027, -1.043572, 0.32045934, 1.1221862, 1.052646, 0.33286473, -1.1413107, -0.7514044, 2.0510933, -1.1022615, 1.3926303, 1.6077352, 0.29407886, 1.0450492, 0.33924752, 1.098037, -1.368535, 1.6077352, 0.29407886, 0.7233572, 2.0861242, -1.1472878, -0.7373668, 2.035576, 0.49515334, -1.097297, 1.412424, 1.0916007, 0.76013005, 2.0341036, 0.49424207, 0.99979615, 1.483532, 1.0491667, -1.0201486, 1.4958979, -1.1319664, 1.0235499, 1.490178, -1.1098889, 1.3926303, 1.3404472, 0.4722447, -1.368535, 1.3404472, 0.4722447, -0.26378635, 1.561722, 1.0463666, -1.368535, 1.3404472, 0.29407886, 1.3926303, 1.3404472, 0.29407886, 0.20949984, 1.5631714, 1.0507156, 0.996755, 1.5615608, 0.9671725, -0.97768235, 1.4840192, 1.0510472, 0.7714409, 2.0466068, -0.2972574, -0.1061786, 1.7195898, 0.88922673)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_qtatp"]
+points = PackedVector3Array(0.7220794, 2.0770452, -1.2672784, 0.7828622, 1.9663911, -1.2880491, 0.947246, 0.806525, -2.8232348, 1.03163, 0.087876596, -1.5306561, -0.74473226, 2.0529537, -2.0216846, -1.0044048, 0.34074894, -1.292956, -1.0122209, 0.806525, -2.8232348, -1.0224336, 1.4824286, -1.2794367, 1.1254206, 0.004922509, -2.1996326, 0.76907146, 2.0529537, -2.0216846, 1.0249395, 1.4760736, -1.2898417, -0.89744383, 1.3040047, -2.650514, -1.1013081, 0.004922509, -2.1996326, -0.70325613, 2.0774825, -1.2669636, 1.0243682, 0.33818123, -1.2902372, -1.1903954, 0.8956646, -2.0216846, -1.0042328, 0.016894836, -1.6978347, 0.8341839, 1.3045498, -2.6517603, -0.8245, 0.59355795, -2.7344768, 1.0280472, 1.2326566, -2.1846747, -1.1903954, 0.7173854, -1.3983963, 0.838296, 0.5937832, -2.7341082, 1.0202539, 0.016894836, -1.6978347, -1.0147337, 0.087876596, -1.5306561, 0.9283776, 1.3090335, -2.581885, -1.0036207, 1.3120255, -2.2642176, -0.7768415, 1.9798807, -1.27749, 1.0230742, 1.3129625, -2.0216916, -0.9551985, 0.567827, -2.6924965, 0.9650354, 0.57199216, -2.6864393)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_sl8wl"]
+points = PackedVector3Array(-1.0959749, 1.3739923, 1.2513648, 1.1250545, 0.27196655, 1.1852391, 1.1250545, 1.340543, 2.4316676, -0.9991297, 1.2025281, 2.718723, -1.1899247, -0.08443487, 1.8976496, 1.0938838, 1.4097288, 1.208932, 1.1250545, 0.004704714, 2.164493, 0.8579234, 0.5392284, 2.877235, -0.83382833, 0.5392284, 2.877235, -1.1899247, 0.004704714, 1.3633003, -1.1009594, 1.4296826, 1.8085363, 1.1250545, 0.004704714, 1.3633003, 1.0360893, 0.80601937, 2.877235, -1.1009594, 0.27196655, 1.1852391, 0.32366124, 1.5188222, 1.274187, -1.1899247, 0.004704714, 2.164493, 1.2140198, 0.89515895, 1.8976496, -1.1009594, 1.340543, 2.4316676, -1.0119942, 0.80601937, 2.877235, 1.0231407, 1.2024878, 2.7186658, 1.1250545, -0.08443487, 1.8976496, 1.1250545, 0.5392284, 2.7879558, -1.1009594, 0.5392284, 2.7879558, 1.2140198, 0.80601937, 1.4524138, 1.1250545, 1.4296826, 1.8085363, -0.29956618, 1.5188222, 1.274187, -1.1899247, 0.27196655, 2.2536063, -1.1899247, 0.18298393, 1.274187)
+
+[sub_resource type="Environment" id="Environment_exm1m"]
+
+[node name="SCENE" type="Node3D"]
+
+[node name="YELLOWCAR" type="VehicleBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6906776, 16.112314, 4.2167826)
+
+[node name="Car3Yellow" parent="YELLOWCAR" instance=ExtResource("1_exm1m")]
+
+[node name="Car4" type="MeshInstance3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.011291981, 0, -0.02305144)
+visible = false
+mesh = ExtResource("2_qtatp")
+skeleton = NodePath("../..")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0017596483, 0, -0.02305144)
+shape = SubResource("ConvexPolygonShape3D_exm1m")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0017596483, 0, -0.02305144)
+shape = SubResource("ConvexPolygonShape3D_qtatp")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0017596483, 0, -0.02305144)
+shape = SubResource("ConvexPolygonShape3D_sl8wl")
+
+[node name="BL" type="VehicleWheel3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9482876, 0.41024047, -1.882468)
+use_as_traction = true
+suspension_travel = 0.15
+suspension_stiffness = 80.0
+
+[node name="BR" type="VehicleWheel3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8226096, 0.41024047, -1.882468)
+use_as_traction = true
+suspension_travel = 0.15
+suspension_stiffness = 80.0
+
+[node name="FL" type="VehicleWheel3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0377989, 0.41024047, 1.7383871)
+use_as_traction = true
+use_as_steering = true
+wheel_roll_influence = 0.05
+wheel_rest_length = 0.2
+suspension_stiffness = 120.0
+
+[node name="FR" type="VehicleWheel3D" parent="YELLOWCAR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9964701, 0.41024047, 1.7383871)
+use_as_traction = true
+use_as_steering = true
+wheel_roll_influence = 0.05
+wheel_rest_length = 0.2
+suspension_stiffness = 120.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_exm1m")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.880715, 4.184222, 13.308405)
