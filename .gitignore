@@ -1,0 +1,13 @@
+# Godot Engine generated files
+.godot/
+export.cfg
+export_presets.cfg.secrets
+*.translation
+*.jmp
+*.pck
+*.zip
+*.apk
+*.ap_
+*.fsc
+certs/
+builds/

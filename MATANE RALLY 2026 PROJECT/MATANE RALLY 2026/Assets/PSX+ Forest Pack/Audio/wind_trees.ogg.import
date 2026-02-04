@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://ditj20ybex1sq"
+path="res://.godot/imported/wind_trees.ogg-a82fa16bb4751d86b2f1ea02ec1750e8.oggvorbisstr"
+
+[deps]
+
+source_file="res://Assets/PSX+ Forest Pack/Audio/wind_trees.ogg"
+dest_files=["res://.godot/imported/wind_trees.ogg-a82fa16bb4751d86b2f1ea02ec1750e8.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
