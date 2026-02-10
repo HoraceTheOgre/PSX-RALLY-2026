@@ -1,0 +1,11 @@
+Model Information:
+* title:	Race Track "South Loop"
+* source:	https://sketchfab.com/3d-models/race-track-south-loop-de485c6c73c24d808bb1bbb870b64250
+* author:	Tomaga (https://sketchfab.com/keromoto)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Race Track "South Loop"" (https://sketchfab.com/3d-models/race-track-south-loop-de485c6c73c24d808bb1bbb870b64250) by Tomaga (https://sketchfab.com/keromoto) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
