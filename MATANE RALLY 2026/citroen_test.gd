@@ -35,8 +35,8 @@ extends RigidBody3D
 # --- Configuration: Anti-Pitch ---
 @export_group("Anti-Pitch Control")
 @export var enable_anti_pitch: bool = true
-@export var anti_pitch_strength: float = 30000.0
-@export var pitch_damping_strength: float = 15000.0
+@export var anti_pitch_strength: float = 40000.0
+@export var pitch_damping_strength: float = 20000.0
 
 @export_group("Drivetrain")
 @export var engine_power: float = 20000.0
@@ -71,7 +71,7 @@ extends RigidBody3D
 @export var low_speed_steer_reduction_enabled: bool = true
 @export var low_speed_min_kph: float = 10.0
 @export var low_speed_max_kph: float = 70
-@export var min_low_speed_steer_ratio: float = 0.3
+@export var min_low_speed_steer_ratio: float = 0.2
 
 @export_subgroup("High-Speed Steering")
 @export var high_speed_reduction_start_kph: float = 70.0
@@ -137,13 +137,14 @@ var prev_steer_angle_for_rate: float = 0.0
 
 func _ready():
 	center_of_mass_mode = CENTER_OF_MASS_MODE_CUSTOM
-	# CALCULATED: For your asymmetric wheelbase
-	# Center = (-1.588 + 1.018) / 2 = -0.285
-	# For 55/45 front bias: -0.285 + (-0.15) = -0.435
-	center_of_mass = Vector3(0.0, -0.45, -0.25) 
 	
+	center_of_mass = Vector3(0.0, -0.45,  -0.25) 
+	
+	wheels[1].position.x = -wheels[0].position.x
+	wheels[3].position.x = -wheels[2].position.x
 	wheels[1].position.z = wheels[0].position.z
 	wheels[3].position.z = wheels[2].position.z
+	
 	
 	var mesh_list = [mesh_fl, mesh_fr, mesh_rl, mesh_rr]
 	for mesh in mesh_list:
@@ -163,6 +164,9 @@ func _physics_process(delta: float):
 	var steer_input = Input.get_axis("steer_right", "steer_left")
 	is_handbrake_active = Input.is_action_pressed("handbrake")
 	
+	if brake > 0.1:
+		print("BRAKE ACTIVE: %.2f | Speed: %.1f km/h" % [brake, linear_velocity.length() * 3.6])
+		
 	var speed_kph = linear_velocity.length() * 3.6
 	var steer_multiplier = calculate_combined_steer_multiplier(speed_kph)
 	
@@ -228,10 +232,10 @@ func _physics_process(delta: float):
 	debug_timer += delta
 	
 	if enable_detailed_debug and debug_timer >= debug_interval:
-		if throttle > debug_throttle_threshold:
+		if throttle > debug_throttle_threshold or brake > 0.5:
 			if speed_kph >= debug_min_speed and speed_kph <= debug_max_speed:
 				print_detailed_debug(speed_kph, throttle, steer_input)
-				debug_timer = 0.0  # Reset timer
+				debug_timer = 0.0
 
 func print_detailed_debug(speed_kph: float, throttle: float, steer_input: float):
 	var front_load = wheel_normal_loads[0] + wheel_normal_loads[1]
@@ -326,6 +330,14 @@ func calculate_combined_steer_multiplier(speed_kph: float) -> float:
 # ==============================================================================
 
 func apply_anti_pitch_control():
+	var throttle = Input.get_action_strength("accelerate")
+	var brake = Input.get_action_strength("brake")
+	var speed_kph = linear_velocity.length() * 3.6
+	
+	# Only apply if moving
+	if speed_kph < 5.0:
+		return
+	
 	var car_forward = -global_transform.basis.z
 	var pitch_angle = asin(clamp(car_forward.y, -1.0, 1.0))
 	
@@ -335,15 +347,23 @@ func apply_anti_pitch_control():
 	
 	var pitch_correction = Vector3.ZERO
 	
-	if pitch_angle < -0.05 or compression_diff > 0.05:
-		var car_right = global_transform.basis.x
-		pitch_correction = car_right * anti_pitch_strength * abs(compression_diff)
-	elif pitch_angle > 0.05 or compression_diff < -0.05:
-		var car_right = global_transform.basis.x
-		pitch_correction = -car_right * anti_pitch_strength * abs(compression_diff)
+	# ACCELERATION: Prevent rear squat (nose up)
+	if throttle > 0.1 and brake < 0.1:
+		if pitch_angle < -0.05 or compression_diff > 0.05:
+			var car_right = global_transform.basis.x
+			pitch_correction = car_right * anti_pitch_strength * abs(compression_diff)
+	
+	# BRAKING: Prevent nose dive (nose down) - THIS IS NEW!
+	elif brake > 0.1:
+		# When braking hard, rear is lifting (compression_diff becomes NEGATIVE)
+		if pitch_angle > 0.05 or compression_diff < -0.05:
+			var car_right = global_transform.basis.x
+			# Apply OPPOSITE torque to prevent dive
+			pitch_correction = -car_right * anti_pitch_strength * abs(compression_diff) * 1.5  # 1.5x stronger for braking
 	
 	apply_torque(pitch_correction)
 	
+	# Pitch damping (same for both)
 	var pitch_velocity = angular_velocity.dot(global_transform.basis.x)
 	var pitch_damping = -global_transform.basis.x * pitch_velocity * pitch_damping_strength
 	apply_torque(pitch_damping)
@@ -774,7 +794,13 @@ func update_visuals(delta: float):
 		
 		if ray.is_colliding():
 			var hit_point = ray.get_collision_point()
-			wheel_world_pos = hit_point + (ray_up * wheel_radius)
+			var suspension_travel = ray.global_position.distance_to(hit_point)
+			var params = get_blended_suspension_params(i)
+			
+			# Limit visual compression to max_compression
+			var max_visual_compression = params.rest_length - params.max_compression
+			suspension_travel = max(suspension_travel, max_visual_compression)
+			wheel_world_pos = ray.global_position - (ray_up * (suspension_travel - wheel_radius))
 		else:
 			var rest_length = get_blended_rest_length(i)
 			var hang_distance = rest_length - wheel_radius
