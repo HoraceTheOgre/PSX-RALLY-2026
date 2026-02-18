@@ -35,8 +35,8 @@ extends RigidBody3D
 # --- Configuration: Anti-Pitch ---
 @export_group("Anti-Pitch Control")
 @export var enable_anti_pitch: bool = true
-@export var anti_pitch_strength: float = 40000.0
-@export var pitch_damping_strength: float = 20000.0
+@export var anti_pitch_strength: float = 80000.0
+@export var pitch_damping_strength: float = 40000.0
 
 @export_group("Drivetrain")
 @export var engine_power: float = 20000.0
@@ -57,7 +57,7 @@ extends RigidBody3D
 
 # --- Configuration: Braking & Resistance ---
 @export_group("Braking & Resistance")
-@export var brake_force: float = 15000.0
+@export var brake_force: float = 8000.0
 @export var handbrake_force: float = 40000.0
 @export var rolling_resistance: float = 15.0
 @export var air_resistance: float = 0.2
@@ -334,46 +334,67 @@ func apply_anti_pitch_control():
 	var brake = Input.get_action_strength("brake")
 	var speed_kph = linear_velocity.length() * 3.6
 	
-	# Only apply if moving
 	if speed_kph < 5.0:
 		return
-	
-	var car_forward = -global_transform.basis.z
-	var pitch_angle = asin(clamp(car_forward.y, -1.0, 1.0))
 	
 	var front_compression = (prev_compression[0] + prev_compression[1]) * 0.5
 	var rear_compression = (prev_compression[2] + prev_compression[3]) * 0.5
 	var compression_diff = front_compression - rear_compression
 	
-	var pitch_correction = Vector3.ZERO
+	# === BRAKING: Force weight forward ===
+	if brake > 0.1:
+		# Target: front should be MORE compressed than rear
+		# When comp_diff < 0, rear is winning (wrong)
+		# Scale force based on how wrong it is, using spring-level forces
+		
+		var target_diff = 0.02  # Front should be 2cm more compressed
+		var error = target_diff - compression_diff  # Positive when we need more front compression
+		
+		if error > 0.0:
+			# Use spring_stiffness-scale forces — we need to compete with 100,000 N/m springs
+			# error of 0.05m * 500,000 = 25,000N per wheel
+			var correction_per_wheel = error * 500000.0 * brake
+			correction_per_wheel = min(correction_per_wheel, 25000.0)  # Cap per wheel
+			
+			# Push FRONT wheels DOWN
+			for i in [0, 1]:
+				if wheels[i].is_colliding():
+					apply_force(Vector3.DOWN * correction_per_wheel, wheels[i].global_position - global_position)
+			
+			# Push REAR wheels UP
+			for i in [2, 3]:
+				if wheels[i].is_colliding():
+					apply_force(Vector3.UP * correction_per_wheel, wheels[i].global_position - global_position)
+			
+			print("ANTI-PITCH BRAKING | per_wheel: %.0f | comp_diff: %.3f | F: %.3f R: %.3f" % [
+				correction_per_wheel, compression_diff, front_compression, rear_compression
+			])
 	
-	# ACCELERATION: Prevent rear squat (nose up)
-	if throttle > 0.1 and brake < 0.1:
-		if pitch_angle < -0.05 or compression_diff > 0.05:
-			var car_right = global_transform.basis.x
-			pitch_correction = car_right * anti_pitch_strength * abs(compression_diff)
+	# === ACCELERATION: Prevent rear squat ===
+	elif throttle > 0.1 and brake < 0.1:
+		if compression_diff > 0.05:
+			var correction = abs(compression_diff) * 200000.0
+			correction = min(correction, 20000.0)
+			for i in [2, 3]:
+				if wheels[i].is_colliding():
+					apply_force(Vector3.DOWN * correction * 0.5, wheels[i].global_position - global_position)
 	
-	# BRAKING: Prevent nose dive (nose down) - THIS IS NEW!
-	elif brake > 0.1:
-		# When braking hard, rear is lifting (compression_diff becomes NEGATIVE)
-		if pitch_angle > 0.05 or compression_diff < -0.05:
-			var car_right = global_transform.basis.x
-			# Apply OPPOSITE torque to prevent dive
-			pitch_correction = -car_right * anti_pitch_strength * abs(compression_diff) * 1.5  # 1.5x stronger for braking
-	
-	apply_torque(pitch_correction)
-	
-	# Pitch damping (same for both)
+	# === PITCH DAMPING ===
 	var pitch_velocity = angular_velocity.dot(global_transform.basis.x)
 	var pitch_damping = -global_transform.basis.x * pitch_velocity * pitch_damping_strength
 	apply_torque(pitch_damping)
 
 func apply_rear_downforce():
+	# Don't fight natural weight transfer during braking
+	var brake = Input.get_action_strength("brake")
+	if brake > 0.1:
+		return
+	
 	var rear_compression = (prev_compression[2] + prev_compression[3]) * 0.5
 	
-	if rear_compression < 0.020:  # Increased threshold from 0.015
+	if rear_compression < 0.020:
 		for i in [2, 3]:
-			var down_force = Vector3.DOWN * 15000.0  # Increased from 8000
+			var down_force = Vector3.DOWN * 15000.0
 			apply_force(down_force, wheels[i].global_position - global_position)
 		
 
@@ -521,11 +542,13 @@ func apply_active_anti_roll():
 			apply_torque(roll_axis * correction_strength)
 	
 	# 2. INCREASED MINIMUM LOAD TARGET
+	var brake = Input.get_action_strength("brake")
 	for i in range(4):
 		if wheels[i].is_colliding():
 			var wheel_load = wheel_normal_loads[i]
+			if brake > 0.1 and i >= 2:
+				continue
 			
-			# CHANGED: Increase from 5000 to 5500N
 			if wheel_load < 5500.0:
 				var deficit = 5500.0 - wheel_load
 				var emergency_downforce = Vector3.DOWN * deficit * 3.0
@@ -771,7 +794,20 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		
 		lat_force_vec = -right_dir * lat_force_mag
 	
-	apply_force(lat_force_vec + (forward_dir * drive_force_mag), wheel.global_position - global_position)
+	var force_application_point = wheel.global_position - global_position
+	
+	if is_braking and not is_handbrake_active:
+		# Apply lateral at the wheel (for steering feel)
+		apply_force(lat_force_vec, force_application_point)
+		
+		# Apply braking force at a point shifted toward CoM vertically
+		# This reduces the pitch moment arm
+		var brake_point = force_application_point
+		brake_point.y = center_of_mass.y  # Apply at CoM height instead of wheel height
+		apply_force(forward_dir * drive_force_mag, brake_point)
+	else:
+		apply_force(lat_force_vec + (forward_dir * drive_force_mag), force_application_point)
+
 
 # ==============================================================================
 # VISUALS
