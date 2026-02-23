@@ -16,16 +16,15 @@ extends RigidBody3D
 @export var arb_stiffness_rear_gravel: float = 18000.0   # CHANGED: 10000 → 15000
 
 @export_group("Suspension System - Tarmac")
-@export var spring_stiffness_tarmac: float = 80000.0
-@export var spring_progressive_rate_tarmac: float = 1.2
-@export var damping_compression_tarmac: float = 16000.0
-@export var damping_rebound_tarmac: float = 14000.0
-@export var rest_length_tarmac: float = 0.5
-@export var max_compression_tarmac: float = 0.4
-@export var bump_stop_stiffness_tarmac: float = 120000.0
-@export var arb_stiffness_front_tarmac: float = 16000.0  # CHANGED: 12000 → 16000
-@export var arb_stiffness_rear_tarmac: float = 18000.0   # CHANGED: 14000 → 18000
-
+@export var spring_stiffness_tarmac: float = 110000.0    
+@export var spring_progressive_rate_tarmac: float = 1.5  
+@export var damping_compression_tarmac: float = 22000.0 
+@export var damping_rebound_tarmac: float = 20000.0     
+@export var rest_length_tarmac: float = 0.45             
+@export var max_compression_tarmac: float = 0.35        
+@export var bump_stop_stiffness_tarmac: float = 140000.0  
+@export var arb_stiffness_front_tarmac: float = 20000.0  
+@export var arb_stiffness_rear_tarmac: float = 22000.0   
 # --- Configuration: Suspension Blending ---
 @export_group("Suspension Adaptation")
 @export var suspension_blend_speed: float = 2.0
@@ -70,13 +69,13 @@ extends RigidBody3D
 @export_subgroup("Low-Speed Steering")
 @export var low_speed_steer_reduction_enabled: bool = true
 @export var low_speed_min_kph: float = 10.0
-@export var low_speed_max_kph: float = 40.0       # Full unlock by 40 (was 70)
-@export var min_low_speed_steer_ratio: float = 0.5  # 50% at crawl speed (was 0.4)
+@export var low_speed_max_kph: float = 40.0      
+@export var min_low_speed_steer_ratio: float = 0.5  
 
 @export_subgroup("High-Speed Steering")
-@export var high_speed_reduction_start_kph: float = 60.0   # Start reducing at 60 (was 70)
-@export var high_speed_reduction_end_kph: float = 140.0    # Gradual over wide range (was 100)
-@export var min_high_speed_steer_ratio: float = 0.35       # Keep 35% at top speed (was 0.1)
+@export var high_speed_reduction_start_kph: float = 60.0  
+@export var high_speed_reduction_end_kph: float = 140.0    
+@export var min_high_speed_steer_ratio: float = 0.35      
 @export var reduce_lateral_grip_with_speed: bool = true
 
 # --- Configuration: Traction ---
@@ -165,10 +164,21 @@ func _physics_process(delta: float):
 	var steer_input = Input.get_axis("steer_right", "steer_left")
 	is_handbrake_active = Input.is_action_pressed("handbrake")
 	
-	if brake > 0.1:
-		print("BRAKE ACTIVE: %.2f | Speed: %.1f km/h" % [brake, linear_velocity.length() * 3.6])
-		
+		# Reverse: when stopped and pressing brake (not throttle), drive backward
 	var speed_kph = linear_velocity.length() * 3.6
+	var forward_dot = linear_velocity.dot(-global_transform.basis.z)  # Positive = forward
+	var is_reversing = false
+	
+	if brake > 0.1 and throttle < 0.1:
+		# Activate reverse if: nearly stopped, OR already moving backward
+		if speed_kph < 5.0 or forward_dot < -0.5:
+			throttle = brake
+			brake = 0.0
+			is_reversing = true
+	
+	if brake > 0.1:
+		print("BRAKE ACTIVE: %.2f | Speed: %.1f km/h" % [brake, speed_kph])
+		
 	var steer_multiplier = calculate_combined_steer_multiplier(speed_kph)
 	
 	var target_angle = steer_input * max_steer_angle * steer_multiplier
@@ -221,7 +231,7 @@ func _physics_process(delta: float):
 		var wheel = wheels[i]
 		if wheel.is_colliding():
 			apply_suspension_force(wheel, i, delta)
-			apply_tire_force(wheel, i, throttle, brake, delta, steer_multiplier)
+			apply_tire_force(wheel, i, throttle, brake, delta, steer_multiplier, is_reversing)
 		else:
 			prev_compression[i] = 0.0
 			prev_length[i] = get_blended_rest_length(i)
@@ -353,6 +363,11 @@ func apply_anti_pitch_control():
 	var throttle = Input.get_action_strength("accelerate")
 	var brake = Input.get_action_strength("brake")
 	var speed_kph = linear_velocity.length() * 3.6
+	
+	# Skip during reverse (brake held, no throttle, low speed or moving backward)
+	var forward_dot = linear_velocity.dot(-global_transform.basis.z)
+	if brake > 0.1 and throttle < 0.1 and (speed_kph < 5.0 or forward_dot < -0.5):
+		return
 	
 	if speed_kph < 5.0:
 		return
@@ -736,7 +751,7 @@ func apply_anti_rollover_force():
 					var down_force = Vector3.DOWN * correction_strength * 0.3
 					apply_force(down_force, wheel.global_position - global_position)
 
-func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: float, delta: float, steer_multiplier: float):
+func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: float, delta: float, steer_multiplier: float, is_reversing: bool = false):
 	var surface = wheel_surfaces[index]
 	var tire_params = get_pacejka_params(surface, index)
 	
@@ -779,13 +794,20 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		load_sensitivity = clamp(load_sensitivity, 0.7, 1.0)
 	
 	# === LATERAL FORCE (Steering) ===
+		# === LATERAL FORCE (Steering) ===
 	var lateral_coeff = pacejka_formula(slip_angle, tire_params)
 	var lat_force_mag = lateral_coeff * normal_load * load_sensitivity
 	
-	# Low-speed lateral grip reduction — prevents snappy rotation at low speed
-	# Ramps from 30% grip at 0 km/h to 100% at 50 km/h
-	var low_speed_lat_scale = clamp(speed / 14.0, 0.3, 1.0)  # 14 m/s ≈ 50 km/h
-	lat_force_mag *= low_speed_lat_scale
+	# Low-speed lateral grip reduction — use CAR speed, not wheel speed
+	# Gentler ramp: 60% grip at 0 km/h, 100% at 30 km/h
+		# Low-speed lateral grip reduction — prevents snappy rotation at low speed
+	var car_speed_ms = linear_velocity.length()
+	var low_speed_lat_scale = clamp(car_speed_ms / 8.5, 0.6, 1.0)
+	if not is_reversing:
+		lat_force_mag *= low_speed_lat_scale
+	
+	if reduce_lateral_grip_with_speed and not is_reversing:
+		lat_force_mag *= steer_multiplier
 	
 	if reduce_lateral_grip_with_speed:
 		lat_force_mag *= steer_multiplier
@@ -825,13 +847,17 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		
 		var total_drive = engine_power * throttle * power_ratio
 		
+		# Reverse: flip drive direction
+		if is_reversing:
+			total_drive = -total_drive
+		
 		var torque_multiplier = lerp(gravel_torque_multiplier, tarmac_torque_multiplier, suspension_blend[index])
 		total_drive *= torque_multiplier
 		
 		if index >= 2:  # Rear wheels
-			if abs(body_slip_angle) > 0.26:  # Sliding more than 15 degrees
+			if abs(body_slip_angle) > 0.26:
 				var slide_reduction = 1.0 - (abs(body_slip_angle) - 0.26) * 1.5
-				slide_reduction = clamp(slide_reduction, 0.5, 1.0)  # Reduce to 50% at most
+				slide_reduction = clamp(slide_reduction, 0.5, 1.0)
 				total_drive *= slide_reduction
 		
 		drive_force_mag = calculate_awd_torque(index, total_drive)
