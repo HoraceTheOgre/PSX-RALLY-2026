@@ -64,19 +64,19 @@ extends RigidBody3D
 
 # --- Configuration: Steering ---
 @export_group("Steering")
-@export var max_steer_angle: float = 1.0
-@export var steer_speed: float = 6
+@export var max_steer_angle: float = 0.55
+@export var steer_speed: float = 1
 
 @export_subgroup("Low-Speed Steering")
 @export var low_speed_steer_reduction_enabled: bool = true
 @export var low_speed_min_kph: float = 10.0
-@export var low_speed_max_kph: float = 70
-@export var min_low_speed_steer_ratio: float = 0.4
+@export var low_speed_max_kph: float = 40.0       # Full unlock by 40 (was 70)
+@export var min_low_speed_steer_ratio: float = 0.5  # 50% at crawl speed (was 0.4)
 
 @export_subgroup("High-Speed Steering")
-@export var high_speed_reduction_start_kph: float = 70.0
-@export var high_speed_reduction_end_kph: float = 100.0
-@export var min_high_speed_steer_ratio: float = 0.1
+@export var high_speed_reduction_start_kph: float = 60.0   # Start reducing at 60 (was 70)
+@export var high_speed_reduction_end_kph: float = 140.0    # Gradual over wide range (was 100)
+@export var min_high_speed_steer_ratio: float = 0.35       # Keep 35% at top speed (was 0.1)
 @export var reduce_lateral_grip_with_speed: bool = true
 
 # --- Configuration: Traction ---
@@ -172,7 +172,17 @@ func _physics_process(delta: float):
 	var steer_multiplier = calculate_combined_steer_multiplier(speed_kph)
 	
 	var target_angle = steer_input * max_steer_angle * steer_multiplier
-	current_steer_angle = lerp(current_steer_angle, target_angle, steer_speed * delta)
+	
+	# Speed-dependent steering rate: slower at low speed, faster at high speed
+	var effective_steer_speed: float
+	if speed_kph < 30.0:
+		# Low speed: heavy, sluggish steering (prevents whipping side to side)
+		effective_steer_speed = lerp(2.0, 4.0, clamp(speed_kph / 30.0, 0.0, 1.0))
+	else:
+		# High speed: quicker response for corrections (but angle is already limited)
+		effective_steer_speed = lerp(4.0, 6.0, clamp((speed_kph - 30.0) / 70.0, 0.0, 1.0))
+	
+	current_steer_angle = lerp(current_steer_angle, target_angle, effective_steer_speed * delta)
 	
 	for wheel in wheels:
 		wheel.force_raycast_update()
@@ -300,31 +310,40 @@ func print_detailed_debug(speed_kph: float, throttle: float, steer_input: float)
 # ==============================================================================
 
 func calculate_combined_steer_multiplier(speed_kph: float) -> float:
-	var low_speed_mult = 1.0
-	var high_speed_mult = 1.0
+	# Single smooth curve: low at very low speed, peaks in mid range, reduces at high speed
 	
-	if low_speed_steer_reduction_enabled and speed_kph < low_speed_max_kph:
-		if speed_kph <= low_speed_min_kph:
-			low_speed_mult = min_low_speed_steer_ratio
-		else:
-			var speed_range = low_speed_max_kph - low_speed_min_kph
-			var speed_in_range = speed_kph - low_speed_min_kph
-			var factor = speed_in_range / speed_range
-			factor = factor * factor * (3.0 - 2.0 * factor)
-			low_speed_mult = lerp(min_low_speed_steer_ratio, 1.0, factor)
+	# Phase 1: Low-speed ramp up (0 to peak_speed)
+	var peak_speed = 45.0  # Speed where steering is at maximum
+	var low_speed_floor = 0.15  # Minimum ratio at very low speed
 	
-	if speed_kph <= high_speed_reduction_start_kph:
-		high_speed_mult = 1.0
-	elif speed_kph >= high_speed_reduction_end_kph:
-		high_speed_mult = min_high_speed_steer_ratio
+	# Phase 2: High-speed ramp down (peak_speed to max)
+	var high_speed_floor = 0.08  # Minimum ratio at very high speed
+	var full_reduction_speed = 120.0  # Speed where minimum is reached
+	
+	var result: float
+	
+	if speed_kph <= 0.0:
+		result = low_speed_floor
+	elif speed_kph < peak_speed:
+		# Ramp UP from low_speed_floor to 1.0
+		var factor = speed_kph / peak_speed
+		factor = factor * factor * (3.0 - 2.0 * factor)  # Smoothstep
+		result = lerp(low_speed_floor, 1.0, factor)
+	elif speed_kph <= peak_speed + 10.0:
+		# Small plateau at 1.0 (45-55 km/h) for natural feel
+		result = 1.0
+	elif speed_kph >= full_reduction_speed:
+		result = high_speed_floor
 	else:
-		var speed_range = high_speed_reduction_end_kph - high_speed_reduction_start_kph
-		var speed_in_range = speed_kph - high_speed_reduction_start_kph
+		# Ramp DOWN from 1.0 to high_speed_floor
+		var range_start = peak_speed + 10.0  # 55 km/h
+		var speed_range = full_reduction_speed - range_start
+		var speed_in_range = speed_kph - range_start
 		var factor = speed_in_range / speed_range
-		factor = factor * factor * (3.0 - 2.0 * factor)
-		high_speed_mult = lerp(1.0, min_high_speed_steer_ratio, factor)
+		factor = factor * factor * (3.0 - 2.0 * factor)  # Smoothstep
+		result = lerp(1.0, high_speed_floor, factor)
 	
-	return min(low_speed_mult, high_speed_mult)
+	return result
 
 # ==============================================================================
 # ANTI-PITCH CONTROL
@@ -534,31 +553,51 @@ func apply_straight_line_assist():
 	var speed_kph = linear_velocity.length() * 3.6
 	
 	# Count up if accelerating straight, reset if not
-	if throttle > 0.5 and steer_input < 0.1 and speed_kph > 10.0:
+	if throttle > 0.5 and steer_input < 0.1 and speed_kph > 5.0:
 		straight_accel_timer += get_physics_process_delta_time()
 	else:
 		straight_accel_timer = 0.0
 		return
 	
-	# After 5 seconds of straight acceleration, start assisting
-	if straight_accel_timer < 2.5:
+	# Speed-aware activation delay:
+	# From dead stop (< 15 km/h when timer started): wait 2.5 seconds
+	# Already moving (> 40 km/h): wait 1.5 seconds
+	# In between: interpolate
+	var activation_delay: float
+	if speed_kph < 15.0:
+		activation_delay = 2.5
+	elif speed_kph > 40.0:
+		activation_delay = 1
+	else:
+		var blend = (speed_kph - 15.0) / 25.0
+		activation_delay = lerp(2.5, 1.5, blend)
+	
+	if straight_accel_timer < activation_delay:
 		return
 	
+	# Gradually ramp up correction strength over 2 seconds after activation
+	var time_since_activation = straight_accel_timer - activation_delay
+	var ramp_factor = clamp(time_since_activation / 2.0, 0.0, 1.0)
+	# Ease in: starts very gentle, builds up
+	ramp_factor = ramp_factor * ramp_factor  # Quadratic ease-in
+	
 	# Calculate how much we're drifting sideways
-	var forward_dir = -global_transform.basis.z
 	var lateral_dir = global_transform.basis.x
 	var lateral_velocity = linear_velocity.dot(lateral_dir)
 	
-	# Push against sideways drift
-	var correction_force = -lateral_dir * lateral_velocity * mass * 2.0
+	# Only correct if there's meaningful drift (ignore tiny amounts)
+	if abs(lateral_velocity) < 0.1:
+		return
+	
+	# Push against sideways drift — gentle, player shouldn't feel it
+	var correction_force = -lateral_dir * lateral_velocity * mass * 1.0 * ramp_factor
 	apply_central_force(correction_force)
 	
-	# Also kill any yaw rotation
+	# Gently kill yaw rotation
 	var yaw_velocity = angular_velocity.dot(global_transform.basis.y)
-	if abs(yaw_velocity) > 0.01:
-		var yaw_correction = -global_transform.basis.y * yaw_velocity * 15000.0
+	if abs(yaw_velocity) > 0.02:
+		var yaw_correction = -global_transform.basis.y * yaw_velocity * 8000.0 * ramp_factor
 		apply_torque(yaw_correction)
-		
 		
 func apply_active_anti_roll():
 	# SIMPLE, STRONG VERSION
@@ -742,6 +781,11 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 	# === LATERAL FORCE (Steering) ===
 	var lateral_coeff = pacejka_formula(slip_angle, tire_params)
 	var lat_force_mag = lateral_coeff * normal_load * load_sensitivity
+	
+	# Low-speed lateral grip reduction — prevents snappy rotation at low speed
+	# Ramps from 30% grip at 0 km/h to 100% at 50 km/h
+	var low_speed_lat_scale = clamp(speed / 14.0, 0.3, 1.0)  # 14 m/s ≈ 50 km/h
+	lat_force_mag *= low_speed_lat_scale
 	
 	if reduce_lateral_grip_with_speed:
 		lat_force_mag *= steer_multiplier
