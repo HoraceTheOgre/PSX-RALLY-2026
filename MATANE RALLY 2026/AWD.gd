@@ -71,7 +71,7 @@ extends RigidBody3D
 @export var low_speed_steer_reduction_enabled: bool = true
 @export var low_speed_min_kph: float = 10.0
 @export var low_speed_max_kph: float = 70
-@export var min_low_speed_steer_ratio: float = 0.2
+@export var min_low_speed_steer_ratio: float = 0.4
 
 @export_subgroup("High-Speed Steering")
 @export var high_speed_reduction_start_kph: float = 70.0
@@ -119,6 +119,7 @@ var wheel_surfaces: Array[String] = ["Tarmac", "Tarmac", "Tarmac", "Tarmac"]
 # Add at the top with other state variables (around line 95):
 var prev_wheel_surfaces: Array[String] = ["Tarmac", "Tarmac", "Tarmac", "Tarmac"]
 var suspension_blend: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var straight_accel_timer: float = 0.0
 
 # Debug data
 var total_drive_force: float = 0.0
@@ -178,7 +179,7 @@ func _physics_process(delta: float):
 	
 	apply_rear_downforce()
 	apply_yaw_damping()
-	apply_slide_recovery()
+	apply_straight_line_assist()
 	apply_slide_recovery()
 	apply_active_anti_roll()
 	detect_surfaces(delta)
@@ -347,14 +348,14 @@ func apply_anti_pitch_control():
 		# When comp_diff < 0, rear is winning (wrong)
 		# Scale force based on how wrong it is, using spring-level forces
 		
-		var target_diff = 0.02  # Front should be 2cm more compressed
+		var target_diff = 0.06  # Front should be 2cm more compressed
 		var error = target_diff - compression_diff  # Positive when we need more front compression
 		
 		if error > 0.0:
 			# Use spring_stiffness-scale forces — we need to compete with 100,000 N/m springs
 			# error of 0.05m * 500,000 = 25,000N per wheel
-			var correction_per_wheel = error * 500000.0 * brake
-			correction_per_wheel = min(correction_per_wheel, 25000.0)  # Cap per wheel
+			var correction_per_wheel = error * 600000.0 * brake
+			correction_per_wheel = min(correction_per_wheel, 35000.0)  # Cap per wheel
 			
 			# Push FRONT wheels DOWN
 			for i in [0, 1]:
@@ -372,12 +373,15 @@ func apply_anti_pitch_control():
 	
 	# === ACCELERATION: Prevent rear squat ===
 	elif throttle > 0.1 and brake < 0.1:
-		if compression_diff > 0.05:
-			var correction = abs(compression_diff) * 200000.0
-			correction = min(correction, 20000.0)
-			for i in [2, 3]:
-				if wheels[i].is_colliding():
-					apply_force(Vector3.DOWN * correction * 0.5, wheels[i].global_position - global_position)
+		# During acceleration, we WANT weight on the rear for traction
+		# Apply a small downforce to rear proportional to throttle and speed
+		var speed_factor = clamp(speed_kph / 80.0, 0.0, 1.0)
+		var rear_help = throttle * speed_factor * 3000.0  # Up to 3000N per rear wheel
+		
+		for i in [2, 3]:
+			if wheels[i].is_colliding():
+				apply_force(Vector3.DOWN * rear_help, wheels[i].global_position - global_position)
+
 	
 	# === PITCH DAMPING ===
 	var pitch_velocity = angular_velocity.dot(global_transform.basis.x)
@@ -524,6 +528,38 @@ func apply_suspension_force(wheel: RayCast3D, index: int, delta: float):
 	prev_compression[index] = compression
 	prev_length[index] = current_length
 
+func apply_straight_line_assist():
+	var throttle = Input.get_action_strength("accelerate")
+	var steer_input = abs(Input.get_axis("steer_right", "steer_left"))
+	var speed_kph = linear_velocity.length() * 3.6
+	
+	# Count up if accelerating straight, reset if not
+	if throttle > 0.5 and steer_input < 0.1 and speed_kph > 10.0:
+		straight_accel_timer += get_physics_process_delta_time()
+	else:
+		straight_accel_timer = 0.0
+		return
+	
+	# After 5 seconds of straight acceleration, start assisting
+	if straight_accel_timer < 2.5:
+		return
+	
+	# Calculate how much we're drifting sideways
+	var forward_dir = -global_transform.basis.z
+	var lateral_dir = global_transform.basis.x
+	var lateral_velocity = linear_velocity.dot(lateral_dir)
+	
+	# Push against sideways drift
+	var correction_force = -lateral_dir * lateral_velocity * mass * 2.0
+	apply_central_force(correction_force)
+	
+	# Also kill any yaw rotation
+	var yaw_velocity = angular_velocity.dot(global_transform.basis.y)
+	if abs(yaw_velocity) > 0.01:
+		var yaw_correction = -global_transform.basis.y * yaw_velocity * 15000.0
+		apply_torque(yaw_correction)
+		
+		
 func apply_active_anti_roll():
 	# SIMPLE, STRONG VERSION
 	
