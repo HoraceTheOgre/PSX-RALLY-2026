@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bsehkbjw5j63"]
+
+[ext_resource type="PackedScene" uid="uid://drrpb3ajwpfn8" path="res://RALLYCROSS TRACK/scene.gltf" id="1_x5162"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Sketchfab_Scene" parent="." instance=ExtResource("1_x5162")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 68.1956, 0)

@@ -580,9 +580,9 @@ func apply_straight_line_assist():
 	# In between: interpolate
 	var activation_delay: float
 	if speed_kph < 15.0:
-		activation_delay = 2.5
+		activation_delay = 1.5
 	elif speed_kph > 40.0:
-		activation_delay = 1
+		activation_delay = 0.5
 	else:
 		var blend = (speed_kph - 15.0) / 25.0
 		activation_delay = lerp(2.5, 1.5, blend)

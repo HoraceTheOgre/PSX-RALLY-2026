@@ -1,0 +1,11 @@
+Model Information:
+* title:	Ahvenisto Race Circuit rallycross track
+* source:	https://sketchfab.com/3d-models/ahvenisto-race-circuit-rallycross-track-20f5d0c0c1e24f4fbea45270f333988c
+* author:	Timo Korkalainen (https://sketchfab.com/timokorkalainen)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Ahvenisto Race Circuit rallycross track" (https://sketchfab.com/3d-models/ahvenisto-race-circuit-rallycross-track-20f5d0c0c1e24f4fbea45270f333988c) by Timo Korkalainen (https://sketchfab.com/timokorkalainen) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
