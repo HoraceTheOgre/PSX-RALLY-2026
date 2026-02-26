@@ -54,51 +54,20 @@
 - **Lien**: https://www.youtube.com/c/GDQuest
 - **description**: Tutoriels professionnels Godot, game design, art et programmation
 
-
-<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-  <channel>
-    <title>Matane Rally Cup - Devlog</title>
-    <link>https://github.com/matane-rally-cup</link>
-    <description>Devlog du jeu de rallye développé avec Godot Engine</description>
-
-    <item>
-      <title>Lancement du projet</title>
-      <link>https://github.com/matane-rally-cup/posts/001</link>
-      <description>Début du développement de Matane Rally Cup avec Godot et C#</description>
-      <pubDate>Mon, 16 Feb 2026 10:00:00 GMT</pubDate>
-    </item>
-
-    <item>
-      <title>Physique du véhicule</title>
-      <link>https://github.com/matane-rally-cup/posts/002</link>
-      <description>Implémentation de VehicleBody3D et configuration de la physique</description>
-      <pubDate>Thu, 19 Feb 2026 14:30:00 GMT</pubDate>
-    </item>
-
-    <item>
-      <title>Système de surfaces</title>
-      <link>https://github.com/matane-rally-cup/posts/003</link>
-      <description>Détection des surfaces avec RayCast3D pour friction dynamique</description>
-      <pubDate>Mon, 23 Feb 2026 09:15:00 GMT</pubDate>
-    </item>
-
-    <item>
-      <title>Support manette</title>
-      <link>https://github.com/matane-rally-cup/posts/004</link>
-      <description>Configuration InputMap pour Xbox, PlayStation et Switch controllers</description>
-      <pubDate>Wed, 25 Feb 2026 16:45:00 GMT</pubDate>
-    </item>
-
-    <item>
-      <title>Système audio</title>
-      <link>https://github.com/matane-rally-cup/posts/005</link>
-      <description>Sons du moteur, surfaces et collisions avec AudioStreamPlayer3D</description>
-      <pubDate>Fri, 27 Feb 2026 11:20:00 GMT</pubDate>
-    </item>
-
-  </channel>
-</rss>
-
-
+<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Raindrop.io Bookmarks</TITLE>
+<H1>Raindrop.io Bookmarks</H1>
+<DL><p>
+	<DT><H3>Export</H3>
+	<DL><p>
+		<DT><A HREF="https://godotengine.org/rss.xml" ADD_DATE="1772113036" LAST_MODIFIED="1772113037" TAGS="" DATA-COVER="https://rdl.ink/render/https%3A%2F%2Fgodotengine.org%2Frss.xml" DATA-IMPORTANT="false">Rss</A>
+		<DT><A HREF="https://gamedeveloper.com/rss.xm" ADD_DATE="1772113032" LAST_MODIFIED="1772113034" TAGS="" DATA-COVER="https://rdl.ink/render/https%3A%2F%2Fgamedeveloper.com%2Frss.xm" DATA-IMPORTANT="false">Rss</A>
+		<DT><A HREF="https://www.iracing.com/feed" ADD_DATE="1772113019" LAST_MODIFIED="1772113022" TAGS="" DATA-COVER="https://rdl.ink/render/https%3A%2F%2Fwww.iracing.com%2Ffeed" DATA-IMPORTANT="false">Feed</A>
+		<DT><A HREF="https://gamefromscratch.com/feed" ADD_DATE="1772112980" LAST_MODIFIED="1772112983" TAGS="" DATA-COVER="https://rdl.ink/render/https%3A%2F%2Fgamefromscratch.com%2Ffeed" DATA-IMPORTANT="false">Feed</A>
+		<DT><A HREF="https://rss.indiedb.com/articles/feed/rss.xml" ADD_DATE="1772112975" LAST_MODIFIED="1772112976" TAGS="" DATA-COVER="https://rdl.ink/render/https%3A%2F%2Frss.indiedb.com%2Farticles%2Ffeed%2Frss.xml" DATA-IMPORTANT="false">Rss</A>
+	</DL><p>
+</DL><p>
+https://sownbreadjesus.raindrop.page/rss-projet-spe-67440409
+https://start.me/p/y97dND/iteration-1
 https://claude.ai/share/e1a9cbcb-7694-457e-b85f-fe4bd3ca844f
