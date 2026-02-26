@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://d3we2k2n80ny"]
+
+[ext_resource type="Texture2D" uid="uid://dxct8md324bk3" path="res://road_road_0021_03_tiled.jpg" id="1_w6lsq"]
+
+[resource]
+albedo_texture = ExtResource("1_w6lsq")
+uv1_scale = Vector3(0.03, 5.335, 1)

@@ -919,6 +919,10 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 # VISUALS
 # ==============================================================================
 
+# ==============================================================================
+# VISUALS (STRICT Y-AXIS ONLY - NO X/Z MOVEMENT)
+# ==============================================================================
+
 func update_visuals(delta: float):
 	var mesh_list = [mesh_fl, mesh_fr, mesh_rl, mesh_rr]
 	
@@ -928,31 +932,33 @@ func update_visuals(delta: float):
 		
 		if !mesh or !ray: continue
 		
+		# 1. HARD RESET: Locks X/Z position, Rotation, and Scale to your editor setup
 		mesh.transform = initial_transforms[i]
 		
-		var wheel_world_pos: Vector3
-		var ray_basis = ray.global_transform.basis
-		var ray_up = ray_basis.y
+		# 2. CALCULATE Y-OFFSET (Suspension)
+		var params = get_blended_suspension_params(i)
+		var current_dist = get_blended_rest_length(i) # Default to hanging
 		
 		if ray.is_colliding():
 			var hit_point = ray.get_collision_point()
-			var suspension_travel = ray.global_position.distance_to(hit_point)
-			var params = get_blended_suspension_params(i)
+			current_dist = ray.global_position.distance_to(hit_point)
 			
-			# Limit visual compression to max_compression
+			# Limit visual compression so the tire doesn't clip through the fender
 			var max_visual_compression = params.rest_length - params.max_compression
-			suspension_travel = max(suspension_travel, max_visual_compression)
-			wheel_world_pos = ray.global_position - (ray_up * (suspension_travel - wheel_radius))
-		else:
-			var rest_length = get_blended_rest_length(i)
-			var hang_distance = rest_length - wheel_radius
-			wheel_world_pos = ray.global_position - (ray_up * hang_distance)
-
-		mesh.global_position = wheel_world_pos
+			current_dist = max(current_dist, max_visual_compression)
+			
+		# How far down from the initial Top position should the wheel center be?
+		var drop_distance = current_dist - wheel_radius
 		
+		# 3. APPLY Y-MOVEMENT ONLY
+		# We modify ONLY the local Y position. X and Z are untouched.
+		mesh.position.y = initial_transforms[i].origin.y - drop_distance
+		
+		# 4. STEERING
 		if i < 2: 
 			mesh.rotate_object_local(Vector3.UP, current_steer_angle)
 		
+		# 5. SPIN
 		var speed = linear_velocity.length()
 		var forward_dot = linear_velocity.dot(-global_transform.basis.z)
 		var dir = 1.0 if forward_dot > 0 else -1.0
@@ -960,6 +966,7 @@ func update_visuals(delta: float):
 		if ray.is_colliding():
 			accumulated_spin[i] += speed * delta * dir * 0.1
 		
+		# Uses 'spin_axis' which is Vector3.UP (Y)
 		mesh.rotate_object_local(spin_axis, accumulated_spin[i])
 
 # ==============================================================================

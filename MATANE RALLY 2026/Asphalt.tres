@@ -1,7 +1,0 @@
-[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://dgpkqpjcyncke"]
-
-[ext_resource type="Texture2D" uid="uid://d353jadmj7wxj" path="res://asphalt_02_diff_4k.jpg" id="1_noav4"]
-
-[resource]
-albedo_texture = ExtResource("1_noav4")
-uv1_scale = Vector3(0.015, -3.515, 1)
