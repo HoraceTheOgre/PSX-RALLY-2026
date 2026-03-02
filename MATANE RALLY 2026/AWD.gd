@@ -28,7 +28,7 @@ extends RigidBody3D
 # --- Configuration: Suspension Blending ---
 @export_group("Suspension Adaptation")
 @export var suspension_blend_speed: float = 2.0
-@export var wheel_radius: float = 0.35
+@export var wheel_radius: float = 0.65
 @export var max_suspension_force: float = 50000.0
 
 # --- Configuration: Anti-Pitch ---
@@ -176,8 +176,6 @@ func _physics_process(delta: float):
 			brake = 0.0
 			is_reversing = true
 	
-	if brake > 0.1:
-		print("BRAKE ACTIVE: %.2f | Speed: %.1f km/h" % [brake, speed_kph])
 		
 	var steer_multiplier = calculate_combined_steer_multiplier(speed_kph)
 	
@@ -401,9 +399,6 @@ func apply_anti_pitch_control():
 				if wheels[i].is_colliding():
 					apply_force(Vector3.UP * correction_per_wheel, wheels[i].global_position - global_position)
 			
-			print("ANTI-PITCH BRAKING | per_wheel: %.0f | comp_diff: %.3f | F: %.3f R: %.3f" % [
-				correction_per_wheel, compression_diff, front_compression, rear_compression
-			])
 	
 	# === ACCELERATION: Prevent rear squat ===
 	elif throttle > 0.1 and brake < 0.1:
