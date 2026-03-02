@@ -16,19 +16,19 @@ extends RigidBody3D
 @export var arb_stiffness_rear_gravel: float = 18000.0   # CHANGED: 10000 → 15000
 
 @export_group("Suspension System - Tarmac")
-@export var spring_stiffness_tarmac: float = 110000.0    
-@export var spring_progressive_rate_tarmac: float = 1.5  
-@export var damping_compression_tarmac: float = 22000.0 
-@export var damping_rebound_tarmac: float = 20000.0     
-@export var rest_length_tarmac: float = 0.45             
-@export var max_compression_tarmac: float = 0.35        
-@export var bump_stop_stiffness_tarmac: float = 140000.0  
-@export var arb_stiffness_front_tarmac: float = 20000.0  
-@export var arb_stiffness_rear_tarmac: float = 22000.0   
+@export var spring_stiffness_tarmac: float = 150000.0   
+@export var spring_progressive_rate_tarmac: float = 2.0
+@export var damping_compression_tarmac: float = 25000.0 
+@export var damping_rebound_tarmac: float = 22000.0    
+@export var rest_length_tarmac: float = 0.55         
+@export var max_compression_tarmac: float = 0.20          
+@export var bump_stop_stiffness_tarmac: float = 200000.0  
+@export var arb_stiffness_front_tarmac: float = 22000.0 
+@export var arb_stiffness_rear_tarmac: float = 24000.0    
 # --- Configuration: Suspension Blending ---
 @export_group("Suspension Adaptation")
 @export var suspension_blend_speed: float = 2.0
-@export var wheel_radius: float = 0.65
+@export var wheel_radius: float = 0.3
 @export var max_suspension_force: float = 50000.0
 
 # --- Configuration: Anti-Pitch ---
