@@ -11,7 +11,7 @@ extends Camera3D
 @export var max_speed_kph: float = 180.0           # Speed where effects are maxed
 
 # Camera pulls back at high speed
-@export var speed_zoom_out: float = 2.0            # Extra distance at max speed
+@export var speed_zoom_out: float = 1.5            # Extra distance at max speed
 @export var zoom_smooth_speed: float = 5.0
 
 # FOV increases at high speed (tunnel vision effect)
@@ -24,7 +24,7 @@ extends Camera3D
 @export var height_smooth_speed: float = 3.0
 
 # Camera lags behind more at high speed (feels like you're pulling ahead)
-@export var speed_lag_multiplier: float = 0.5      # Extra lag at max speed
+@export var speed_lag_multiplier: float = 0.2     # Extra lag at max speed
 
 # --- SHAKE ---
 @export_group("Camera Shake")

@@ -57,6 +57,10 @@ extends RigidBody3D
 @export_group("Surface Torque Multipliers")
 @export var gravel_torque_multiplier: float = 1.5
 @export var tarmac_torque_multiplier: float = 1
+@export var gravel_top_speed_multiplier: float = 1.0    # ADD THIS
+@export var tarmac_top_speed_multiplier: float = 1.4    # ADD THIS - 40% higher top speed
+@export var gravel_power_multiplier: float = 1.0        # ADD THIS
+@export var tarmac_power_multiplier: float = 1.5        # ADD THIS - 50% more power
 
 @export_group("Surface Slide Behavior")
 @export var gravel_slide_drag: float = 800.0    # Low - maintains momentum
@@ -892,21 +896,20 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		total_drive_force += abs(drive_force_mag)
 	elif throttle > 0.01:
 		var car_speed = linear_velocity.length()
-		var top_speed_ms = top_speed_kph / 3.6
+		
+		# Surface-specific top speed
+		var top_speed_mult = lerp(gravel_top_speed_multiplier, tarmac_top_speed_multiplier, suspension_blend[index])
+		var effective_top_speed = top_speed_kph * top_speed_mult
+		var top_speed_ms = effective_top_speed / 3.6
+		
 		var speed_ratio = clamp(car_speed / top_speed_ms, 0.0, 1.0)
 		
 		var power_ratio = 1.0 - (speed_ratio * power_curve_falloff)
 		power_ratio = max(power_ratio, min_power_ratio)
 		
-		var total_drive = engine_power * throttle * power_ratio
-		
-		# Reverse: flip drive direction
-		if is_reversing:
-			total_drive = -total_drive
-		
-		var torque_multiplier = lerp(gravel_torque_multiplier, tarmac_torque_multiplier, suspension_blend[index])
-		total_drive *= torque_multiplier
-		
+		# Surface-specific power
+		var power_mult = lerp(gravel_power_multiplier, tarmac_power_multiplier, suspension_blend[index])
+		var total_drive = engine_power * throttle * power_ratio * power_mult
 		if index >= 2:  # Rear wheels
 			if abs(body_slip_angle) > 0.26:
 				var slide_reduction = 1.0 - (abs(body_slip_angle) - 0.26) * 1.5
