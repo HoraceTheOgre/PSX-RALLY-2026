@@ -24,4 +24,4 @@ func _process(_delta: float):
 	var speed_kph: float = car.linear_velocity.length() * 3.6
 	
 	# Update the speed display
-	speed_label.text = "%d km/h" % int(speed_kph * 2)
+	speed_label.text = "%d km/h" % int(speed_kph)

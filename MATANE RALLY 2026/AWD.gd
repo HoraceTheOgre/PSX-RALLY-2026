@@ -23,8 +23,8 @@ extends RigidBody3D
 @export var rest_length_tarmac: float = 0.65            
 @export var max_compression_tarmac: float = 0.5        
 @export var bump_stop_stiffness_tarmac: float = 140000.0  
-@export var arb_stiffness_front_tarmac: float = 20000.0  
-@export var arb_stiffness_rear_tarmac: float = 22000.0 
+@export var arb_stiffness_front_tarmac: float = 18000.0  
+@export var arb_stiffness_rear_tarmac: float = 20000.0 
 # --- Configuration: Suspension Blending ---
 @export_group("Suspension Adaptation")
 @export var suspension_blend_speed: float = 2.0
@@ -44,6 +44,10 @@ extends RigidBody3D
 @export var torque_split: float = 0.5  # High-speed default
 @export var min_power_ratio: float = 0.85
 
+@export_group("Surface Brake Multipliers")
+@export var gravel_brake_multiplier: float = 0.65    # Brakes are 35% less effective on gravel
+@export var tarmac_brake_multiplier: float = 1.0     # Full braking on tarmac
+
 @export_subgroup("Dynamic Torque Split")
 @export var enable_dynamic_torque: bool = true
 @export var low_speed_rear_split: float = 0.35  
@@ -54,12 +58,17 @@ extends RigidBody3D
 @export var gravel_torque_multiplier: float = 1.5
 @export var tarmac_torque_multiplier: float = 1
 
+@export_group("Surface Slide Behavior")
+@export var gravel_slide_drag: float = 800.0    # Low - maintains momentum
+@export var tarmac_slide_drag: float = 3500.0   # High - scrubs speed quickly
+@export var slide_drag_slip_threshold: float = 5.0  # Degrees before drag kicks in
 # --- Configuration: Braking & Resistance ---
 @export_group("Braking & Resistance")
 @export var brake_force: float = 8000.0
 @export var handbrake_force: float = 40000.0
 @export var rolling_resistance: float = 15.0
 @export var air_resistance: float = 0.2
+
 
 # --- Configuration: Steering ---
 @export_group("Steering")
@@ -82,6 +91,15 @@ extends RigidBody3D
 @export_group("Traction Circle Override")
 @export var longitudinal_grip_multiplier: float = 4.0
 @export var straight_line_slip_angle: float = 0.15
+
+@export_group("Surface Speed Penalty")
+@export var gravel_speed_drag: float = 250.0      # Extra drag force on gravel
+@export var tarmac_speed_drag: float = 0.0        # No extra drag on tarmac
+
+@export_group("Surface Speed Bonus")
+@export var tarmac_speed_boost: float = 150.0     # Extra forward force on tarmac at speed
+@export var gravel_speed_boost: float = 0.0       # No boost on gravel
+@export var speed_boost_min_kph: float = 20.0     # Boost starts after this speed
 
 # --- Configuration: Debug ---
 @export_group("Debug Settings")
@@ -202,6 +220,7 @@ func _physics_process(delta: float):
 	apply_active_anti_roll()
 	detect_surfaces(delta)
 	apply_anti_rollover_force()
+	apply_surface_speed_penalty()
 	
 	if enable_anti_pitch:
 		apply_anti_pitch_control()
@@ -609,6 +628,23 @@ func apply_straight_line_assist():
 		var yaw_correction = -global_transform.basis.y * yaw_velocity * 8000.0 * ramp_factor
 		apply_torque(yaw_correction)
 		
+func apply_surface_speed_penalty():
+	var speed = linear_velocity.length()
+	if speed < 1.0:
+		return
+	
+	# Get average surface blend (0 = gravel, 1 = tarmac)
+	var surface_blend = (suspension_blend[0] + suspension_blend[1] + suspension_blend[2] + suspension_blend[3]) / 4.0
+	
+	# Blend between gravel and tarmac drag
+	var surface_drag = lerp(gravel_speed_drag, tarmac_speed_drag, surface_blend)
+	
+	# Drag increases with speed squared - kills top speed, minimal effect at low speed
+	var drag_force = surface_drag * speed * speed / 1000.0
+	
+	# Apply opposite to velocity
+	var velocity_dir = linear_velocity.normalized()
+	apply_central_force(-velocity_dir * drag_force)
 func apply_active_anti_roll():
 	# SIMPLE, STRONG VERSION
 	
@@ -792,6 +828,10 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		# === LATERAL FORCE (Steering) ===
 	var lateral_coeff = pacejka_formula(slip_angle, tire_params)
 	var lat_force_mag = lateral_coeff * normal_load * load_sensitivity
+
+# Surface grip multiplier - tarmac feels much grippier
+	var surface_grip = 1.0 if surface == "Gravel" else 1.5  # 50% more lateral grip on tarmac
+	lat_force_mag *= surface_grip
 	
 	# Low-speed lateral grip reduction — use CAR speed, not wheel speed
 	# Gentler ramp: 60% grip at 0 km/h, 100% at 30 km/h
@@ -816,6 +856,21 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 	# Store for debug
 	wheel_lateral_forces[index] = abs(lat_force_mag)
 	
+			# === SLIDE DRAG ===
+	var slide_drag_force = Vector3.ZERO
+	var slip_deg = rad_to_deg(abs(slip_angle))
+	
+	if slip_deg > slide_drag_slip_threshold:
+		var drag_factor = clamp((slip_deg - slide_drag_slip_threshold) / 25.0, 0.0, 1.0)
+		drag_factor = drag_factor * drag_factor
+		
+		var surface_drag = gravel_slide_drag if surface == "Gravel" else tarmac_slide_drag
+		var velocity_dir = wheel_vel.normalized()
+		
+		if velocity_dir.length() > 0.1:
+			slide_drag_force = -velocity_dir * drag_factor * surface_drag * (normal_load / 5000.0)
+			apply_force(slide_drag_force, wheel.global_position - global_position)
+	
 	# === LONGITUDINAL FORCE (Drive/Brake) ===
 	var drive_force_mag = 0.0
 	var is_braking = false
@@ -825,11 +880,14 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		drive_force_mag = brake_direction * handbrake_force
 		is_braking = true
 		total_drive_force += abs(drive_force_mag)
-	elif brake > 0.01:  # Regular brake: ALL wheels (fixed!)
+	elif brake > 0.01:  # Regular brake: ALL wheels
 		var brake_direction = -1.0 if v_long > 0 else 1.0
-		# Front wheels get more braking (60/40 split is typical)
 		var brake_bias = 0.6 if index < 2 else 0.4
-		drive_force_mag = brake_direction * brake_force * brake * brake_bias * 2.5  # 2.5 to compensate for split
+		
+		# Surface-specific brake effectiveness
+		var brake_mult = lerp(gravel_brake_multiplier, tarmac_brake_multiplier, suspension_blend[index])
+		
+		drive_force_mag = brake_direction * brake_force * brake * brake_bias * 2.5 * brake_mult
 		is_braking = true
 		total_drive_force += abs(drive_force_mag)
 	elif throttle > 0.01:
@@ -973,14 +1031,14 @@ func get_pacejka_params(surface: String, wheel_index: int) -> Dictionary:
 	
 	if surface == "Gravel":
 		if is_rear:
-			return { "B": 6.5, "C": 2.0, "D": 1.5, "E": 0.2 }  # REDUCED: 2.0 → 1.5
+			return { "B": 6.5, "C": 2.0, "D": 1.5, "E": 0.2 }
 		else:
 			return { "B": 6.5, "C": 2.0, "D": 1.7, "E": 0.2 }
 	else:  # Tarmac
 		if is_rear:
-			return { "B": 8.0, "C": 1.9, "D": 1.8, "E": -0.5 }  # REDUCED: 2.4 → 1.8
+			return { "B": 10.0, "C": 1.4, "D": 1.1, "E": -0.1 }
 		else:
-			return { "B": 8.0, "C": 1.9, "D": 2.0, "E": -0.5 }
+			return { "B": 11.0, "C": 1.3, "D": 1.2, "E": -0.1 }
 	
 
 func pacejka_formula(slip: float, p: Dictionary) -> float:
