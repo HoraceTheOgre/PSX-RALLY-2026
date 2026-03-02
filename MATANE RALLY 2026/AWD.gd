@@ -100,6 +100,12 @@ extends RigidBody3D
 @export var gravel_speed_drag: float = 250.0      # Extra drag force on gravel
 @export var tarmac_speed_drag: float = 0.0        # No extra drag on tarmac
 
+@export_group("Gravel Slide Behavior")
+@export var gravel_countersteer_grip_penalty: float = 0.4   # More aggressive: 40% grip when sliding
+@export var gravel_slide_threshold_deg: float = 3.0          # Start penalty at just 3 degrees!
+@export var tarmac_countersteer_grip_penalty: float = 1.0
+@export var gravel_grip_recovery_speed: float = 2          # ADD THIS - how fast grip returns (lower = slower)
+
 @export_group("Surface Speed Bonus")
 @export var tarmac_speed_boost: float = 150.0     # Extra forward force on tarmac at speed
 @export var gravel_speed_boost: float = 0.0       # No boost on gravel
@@ -141,7 +147,7 @@ var wheel_surfaces: Array[String] = ["Tarmac", "Tarmac", "Tarmac", "Tarmac"]
 var prev_wheel_surfaces: Array[String] = ["Tarmac", "Tarmac", "Tarmac", "Tarmac"]
 var suspension_blend: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var straight_accel_timer: float = 0.0
-
+var front_grip_modifier: Array[float] = [1.0, 1.0]
 # Debug data
 var total_drive_force: float = 0.0
 var total_lat_force: float = 0.0
@@ -859,7 +865,27 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 	
 	# Store for debug
 	wheel_lateral_forces[index] = abs(lat_force_mag)
-	
+			# === GRAVEL COUNTERSTEER PENALTY WITH GRADUAL RECOVERY ===
+	if index < 2:  # Front wheels only
+		var body_slip_deg = rad_to_deg(abs(body_slip_angle))
+		var target_grip: float = 1.0
+		
+		if body_slip_deg > gravel_slide_threshold_deg:
+			# Calculate how much grip penalty to apply
+			var slide_severity = clamp((body_slip_deg - gravel_slide_threshold_deg) / 15.0, 0.0, 1.0)
+			var surface_penalty = lerp(tarmac_countersteer_grip_penalty, gravel_countersteer_grip_penalty, 1.0 - suspension_blend[index])
+			target_grip = lerp(1.0, surface_penalty, slide_severity)
+		
+		# Smoothly transition grip - prevents snap when recovering
+		var recovery_speed = gravel_grip_recovery_speed
+		if target_grip < front_grip_modifier[index]:
+			# Grip LOSS is instant
+			front_grip_modifier[index] = target_grip
+		else:
+			# Grip RECOVERY is gradual - prevents front snap
+			front_grip_modifier[index] = lerp(front_grip_modifier[index], target_grip, recovery_speed * delta)
+		
+		lat_force_mag *= front_grip_modifier[index]
 			# === SLIDE DRAG ===
 	var slide_drag_force = Vector3.ZERO
 	var slip_deg = rad_to_deg(abs(slip_angle))
