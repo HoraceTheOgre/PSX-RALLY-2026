@@ -9,22 +9,22 @@ extends RigidBody3D
 @export var spring_progressive_rate_gravel: float = 2.0
 @export var damping_compression_gravel: float = 20000.0
 @export var damping_rebound_gravel: float = 18000.0
-@export var rest_length_gravel: float = 0.6
+@export var rest_length_gravel: float = 0.65
 @export var max_compression_gravel: float = 0.5
 @export var bump_stop_stiffness_gravel: float = 100000.0
 @export var arb_stiffness_front_gravel: float = 12000.0  # CHANGED: 8000 → 12000
 @export var arb_stiffness_rear_gravel: float = 18000.0   # CHANGED: 10000 → 15000
 
 @export_group("Suspension System - Tarmac")
-@export var spring_stiffness_tarmac: float = 150000.0   
-@export var spring_progressive_rate_tarmac: float = 2.0
-@export var damping_compression_tarmac: float = 25000.0 
-@export var damping_rebound_tarmac: float = 22000.0    
-@export var rest_length_tarmac: float = 0.55         
-@export var max_compression_tarmac: float = 0.20          
-@export var bump_stop_stiffness_tarmac: float = 200000.0  
-@export var arb_stiffness_front_tarmac: float = 22000.0 
-@export var arb_stiffness_rear_tarmac: float = 24000.0    
+@export var spring_stiffness_tarmac: float = 110000.0    
+@export var spring_progressive_rate_tarmac: float = 1.5  
+@export var damping_compression_tarmac: float = 22000.0 
+@export var damping_rebound_tarmac: float = 20000.0     
+@export var rest_length_tarmac: float = 0.65            
+@export var max_compression_tarmac: float = 0.5        
+@export var bump_stop_stiffness_tarmac: float = 140000.0  
+@export var arb_stiffness_front_tarmac: float = 20000.0  
+@export var arb_stiffness_rear_tarmac: float = 22000.0 
 # --- Configuration: Suspension Blending ---
 @export_group("Suspension Adaptation")
 @export var suspension_blend_speed: float = 2.0
@@ -46,13 +46,13 @@ extends RigidBody3D
 
 @export_subgroup("Dynamic Torque Split")
 @export var enable_dynamic_torque: bool = true
-@export var low_speed_rear_split: float = 0.35  # 25% rear at low speed (75% front!)
-@export var high_speed_rear_split: float = 0.60  # 50% rear at high speed
-@export var torque_transition_speed_kph: float = 60.0  # Transition complete by 60 km/h
+@export var low_speed_rear_split: float = 0.35  
+@export var high_speed_rear_split: float = 0.60  
+@export var torque_transition_speed_kph: float = 60.0  
 # --- Configuration: Surface-Specific Torque ---
 @export_group("Surface Torque Multipliers")
 @export var gravel_torque_multiplier: float = 1.5
-@export var tarmac_torque_multiplier: float = 1.0
+@export var tarmac_torque_multiplier: float = 1
 
 # --- Configuration: Braking & Resistance ---
 @export_group("Braking & Resistance")
