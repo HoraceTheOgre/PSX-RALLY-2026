@@ -83,7 +83,7 @@ extends RigidBody3D
 @export var low_speed_steer_reduction_enabled: bool = true
 @export var low_speed_min_kph: float = 10.0
 @export var low_speed_max_kph: float = 40.0      
-@export var min_low_speed_steer_ratio: float = 0.3  
+@export var min_low_speed_steer_ratio: float = 0.5  
 
 @export_subgroup("High-Speed Steering")
 @export var high_speed_reduction_start_kph: float = 60.0  
@@ -198,12 +198,8 @@ func _physics_process(delta: float):
 	var is_reversing = false
 	
 	if brake > 0.1 and throttle < 0.1:
-		# Activate reverse if: completely stopped, OR already moving backward
-		if speed_kph < 2.0:  # Changed from 5.0 to 2.0 - must be nearly stopped
-			throttle = brake
-			brake = 0.0
-			is_reversing = true
-		elif forward_dot < -0.5:  # Already reversing - continue
+		# Activate reverse if: nearly stopped, OR already moving backward
+		if speed_kph < 5.0 or forward_dot < -0.5:
 			throttle = brake
 			brake = 0.0
 			is_reversing = true
@@ -407,25 +403,45 @@ func apply_anti_pitch_control():
 	var rear_compression = (prev_compression[2] + prev_compression[3]) * 0.5
 	var compression_diff = front_compression - rear_compression
 	
-	var pitch_correction = Vector3.ZERO
+	# === BRAKING: Force weight forward ===
+	if brake > 0.1:
+		# Target: front should be MORE compressed than rear
+		# When comp_diff < 0, rear is winning (wrong)
+		# Scale force based on how wrong it is, using spring-level forces
+		
+		var target_diff = 0.06  # Front should be 2cm more compressed
+		var error = target_diff - compression_diff  # Positive when we need more front compression
+		
+		if error > 0.0:
+			# Use spring_stiffness-scale forces — we need to compete with 100,000 N/m springs
+			# error of 0.05m * 500,000 = 25,000N per wheel
+			var correction_per_wheel = error * 600000.0 * brake
+			correction_per_wheel = min(correction_per_wheel, 35000.0)  # Cap per wheel
+			
+			# Push FRONT wheels DOWN
+			for i in [0, 1]:
+				if wheels[i].is_colliding():
+					apply_force(Vector3.DOWN * correction_per_wheel, wheels[i].global_position - global_position)
+			
+			# Push REAR wheels UP
+			for i in [2, 3]:
+				if wheels[i].is_colliding():
+					apply_force(Vector3.UP * correction_per_wheel, wheels[i].global_position - global_position)
+			
 	
-	# Check if braking
-	var is_braking = brake > 0.1
+	# === ACCELERATION: Prevent rear squat ===
+	elif throttle > 0.1 and brake < 0.1:
+		# During acceleration, we WANT weight on the rear for traction
+		# Apply a small downforce to rear proportional to throttle and speed
+		var speed_factor = clamp(speed_kph / 80.0, 0.0, 1.0)
+		var rear_help = throttle * speed_factor * 3000.0  # Up to 3000N per rear wheel
+		
+		for i in [2, 3]:
+			if wheels[i].is_colliding():
+				apply_force(Vector3.DOWN * rear_help, wheels[i].global_position - global_position)
+
 	
-	# Braking pitch (nose dive) - STRONGER correction
-	if is_braking and compression_diff > 0.02:
-		var car_right = global_transform.basis.x
-		# Much stronger anti-dive during braking
-		var brake_anti_pitch = anti_pitch_strength * 2.5  # 2.5x stronger when braking
-		pitch_correction = car_right * brake_anti_pitch * compression_diff
-	# Acceleration pitch (rear squat)
-	elif compression_diff < -0.02:
-		var car_right = global_transform.basis.x
-		pitch_correction = -car_right * anti_pitch_strength * abs(compression_diff)
-	
-	apply_torque(pitch_correction)
-	
-	# Pitch damping
+	# === PITCH DAMPING ===
 	var pitch_velocity = angular_velocity.dot(global_transform.basis.x)
 	var pitch_damping = -global_transform.basis.x * pitch_velocity * pitch_damping_strength
 	apply_torque(pitch_damping)
@@ -894,22 +910,16 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		drive_force_mag = brake_direction * handbrake_force
 		is_braking = true
 		total_drive_force += abs(drive_force_mag)
-	elif brake > 0.01 and not is_reversing:  # Regular brake: only when NOT reversing
-		# Don't apply brake force if nearly stopped (prevents rotation)
-		var car_speed = linear_velocity.length()
-		if car_speed < 0.5:
-			drive_force_mag = 0.0
-			is_braking = false
-		else:
-			var brake_direction = -1.0 if v_long > 0 else 1.0
-			var brake_bias = 0.6 if index < 2 else 0.4
-			
-			# Surface-specific brake effectiveness
-			var brake_mult = lerp(gravel_brake_multiplier, tarmac_brake_multiplier, suspension_blend[index])
-			
-			drive_force_mag = brake_direction * brake_force * brake * brake_bias * 2.5 * brake_mult
-			is_braking = true
-			total_drive_force += abs(drive_force_mag)
+	elif brake > 0.01:  # Regular brake: ALL wheels
+		var brake_direction = -1.0 if v_long > 0 else 1.0
+		var brake_bias = 0.6 if index < 2 else 0.4
+		
+		# Surface-specific brake effectiveness
+		var brake_mult = lerp(gravel_brake_multiplier, tarmac_brake_multiplier, suspension_blend[index])
+		
+		drive_force_mag = brake_direction * brake_force * brake * brake_bias * 2.5 * brake_mult
+		is_braking = true
+		total_drive_force += abs(drive_force_mag)
 	elif throttle > 0.01:
 		var car_speed = linear_velocity.length()
 		
@@ -982,7 +992,7 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		# This reduces the pitch moment arm
 		var brake_point = force_application_point
 		brake_point.y = center_of_mass.y  # Apply at CoM height instead of wheel height
-		apply_force(forward_dir * drive_force_mag, center_of_mass)
+		apply_force(forward_dir * drive_force_mag, brake_point)
 	else:
 		apply_force(lat_force_vec + (forward_dir * drive_force_mag), force_application_point)
 
