@@ -256,7 +256,7 @@ func _physics_process(delta: float) -> void:
 	if enable_detailed_debug and debug_timer >= debug_interval:
 		if throttle > debug_throttle_threshold or brake > 0.5:
 			if speed_kph >= debug_min_speed and speed_kph <= debug_max_speed:
-				print_detailed_debug(speed_kph, throttle, steer_input)
+				##print_detailed_debug(speed_kph, throttle, steer_input)
 				debug_timer = 0.0
 
 # ==============================================================================

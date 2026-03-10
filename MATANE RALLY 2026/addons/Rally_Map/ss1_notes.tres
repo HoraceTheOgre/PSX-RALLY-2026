@@ -1,0 +1,72 @@
+[gd_resource type="Resource" script_class="PaceNoteBook" load_steps=12 format=3 uid="uid://dymkmxrs2yan"]
+
+[ext_resource type="Script" uid="uid://d358st3lagon" path="res://Pacenote.gd" id="1_lfwt7"]
+[ext_resource type="AudioStream" uid="uid://c2kebgr7estnm" path="res://addons/Rally_Map/833028__sentientmattress__rally-co-driver-pacenote-cues.wav" id="1_xbwmi"]
+[ext_resource type="Script" uid="uid://bhn6ui8jag30a" path="res://Pacenotebook.gd" id="2_xbwmi"]
+
+[sub_resource type="Resource" id="Resource_xbwmi"]
+script = ExtResource("1_lfwt7")
+label = "Countdown"
+end_seconds = 6.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_4tmyp"]
+script = ExtResource("1_lfwt7")
+label = "100"
+start_minutes = 1
+start_seconds = 52.0
+end_minutes = 1
+end_seconds = 53.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_d58qv"]
+script = ExtResource("1_lfwt7")
+label = "Into2left"
+start_seconds = 23.5
+end_seconds = 24.5
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_bo57g"]
+script = ExtResource("1_lfwt7")
+label = "Into2right"
+start_seconds = 28.5
+end_seconds = 29.7
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_kk7i5"]
+script = ExtResource("1_lfwt7")
+label = "And1right"
+start_seconds = 20.0
+end_seconds = 21.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_pjo83"]
+script = ExtResource("1_lfwt7")
+label = "50"
+start_minutes = 1
+start_seconds = 47.0
+end_minutes = 1
+end_seconds = 48.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_u5ygk"]
+script = ExtResource("1_lfwt7")
+label = "And1left"
+start_seconds = 14.0
+end_seconds = 15.2
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_4dxo8"]
+script = ExtResource("1_lfwt7")
+label = "Intosquareright"
+start_minutes = 2
+start_seconds = 53.0
+end_minutes = 2
+end_seconds = 54.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[resource]
+script = ExtResource("2_xbwmi")
+audio_file = ExtResource("1_xbwmi")
+notes = Array[ExtResource("1_lfwt7")]([SubResource("Resource_xbwmi"), SubResource("Resource_4tmyp"), SubResource("Resource_d58qv"), SubResource("Resource_bo57g"), SubResource("Resource_kk7i5"), SubResource("Resource_pjo83"), SubResource("Resource_u5ygk"), SubResource("Resource_4dxo8")])
+metadata/_custom_type_script = "uid://bhn6ui8jag30a"

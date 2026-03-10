@@ -3,53 +3,28 @@ class_name CoPilot
 
 # ==============================================================================
 # CoPilot.gd
-# Reads pace notes when the car drives through Area3D trigger zones.
-# Each note in the book maps 1-to-1 with an Area3D in the stage scene.
-# See: PaceNote.gd, PaceNoteBook.gd
+# Plays pace notes from a continuous WAV file when the car passes Area3D triggers.
 # ==============================================================================
 
-signal note_called(note: PaceNote)        ## Fires when a note starts being read
-signal note_finished(note: PaceNote)      ## Fires when the audio chain ends
-signal lookahead_changed(notes: Array)    ## Fires after each call with upcoming notes
-signal stage_complete()                   ## Fires after the last note is read
+signal note_called(note: PaceNote)
+signal note_finished(note: PaceNote)
+signal stage_complete()
 
-# --- Setup ---
 @export_group("Setup")
 @export var note_book: PaceNoteBook
 @export var car: NodePath
-## Parent node that holds all PaceNoteTrigger Area3D nodes.
-## In the scene tree it should look like:
-##   StageTriggers  <-- assign this
-##     PaceNoteTrigger_0
-##     PaceNoteTrigger_1
-##     PaceNoteTrigger_2  ...
 @export var triggers_parent: NodePath
 
-# --- Audio ---
 @export_group("Audio")
-## AudioStreamPlayer3D placed at the co-pilot seat position.
-@export var voice_player: AudioStreamPlayer3D
-## Folder containing .ogg clips, one per keyword.
-## Required files: left.ogg  right.ogg  straight.ogg
-##                 1.ogg  2.ogg  3.ogg  4.ogg  5.ogg  flat.ogg
-##                 One .ogg per modifier word you use (tightens.ogg, caution.ogg)
-@export var audio_folder: String = "res://audio/copilot/"
-## Gap in seconds between two clips in a single note call (e.g. "left" then "3").
-@export var clip_gap_seconds: float = 0.08
-## Minimum seconds before another note can fire. Prevents overlap on tight sections.
-@export var min_call_gap_seconds: float = 1.0
+@export var voice_player: AudioStreamPlayer
+@export var min_call_gap_seconds: float = 0.5
 
-# --- Look-ahead ---
-@export_group("Look-ahead")
-## How many upcoming notes to include in the lookahead_changed signal.
-@export var lookahead_count: int = 3
-
-# --- Internal ---
 var _car_node: RigidBody3D
 var _notes: Array[PaceNote] = []
-var _triggers: Array = []
 var _last_call_time: float = -999.0
 var _running: bool = false
+var _stop_timer: Timer
+var _current_note: PaceNote = null
 
 # ==============================================================================
 # READY
@@ -58,138 +33,105 @@ var _running: bool = false
 func _ready() -> void:
 	if car:
 		_car_node = get_node(car)
-	if note_book:
-		_load_notes()
+
+	_stop_timer = Timer.new()
+	_stop_timer.one_shot = true
+	_stop_timer.timeout.connect(_on_clip_ended)
+	add_child(_stop_timer)
 
 # ==============================================================================
 # PUBLIC API
 # ==============================================================================
 
-## Call this when the stage countdown ends.
 func start() -> void:
 	if not note_book:
 		push_error("[CoPilot] No note_book assigned.")
 		return
-	_load_notes()
-	_connect_triggers()
-	_running = true
-	_emit_lookahead(0)
-	print("[CoPilot] Started - %d notes, %d triggers." % [_notes.size(), _triggers.size()])
+	if not voice_player:
+		push_error("[CoPilot] No voice_player assigned.")
+		return
+	if not note_book.audio_file:
+		push_error("[CoPilot] No audio_file set in the PaceNoteBook resource.")
+		return
 
-## Pause reading (e.g. during a pause menu).
-func stop() -> void:
-	_running = false
-
-# ==============================================================================
-# INTERNAL - SETUP
-# ==============================================================================
-
-func _load_notes() -> void:
 	_notes = note_book.notes.duplicate()
 
-func _connect_triggers() -> void:
-	if not triggers_parent:
-		push_error("[CoPilot] triggers_parent not assigned.")
-		return
+	# Assign the stream once and leave it — we seek into it each time
+	voice_player.stream = note_book.audio_file
+	# Autoplay must be OFF on the AudioStreamPlayer node, we call play() manually
+	voice_player.autoplay = false
 
+	_connect_triggers()
+	_running = true
+	print("[CoPilot] Ready — %d notes loaded." % _notes.size())
+
+func stop() -> void:
+	_running = false
+	_stop_timer.stop()
+	voice_player.stop()
+
+# ==============================================================================
+# TRIGGERS
+# ==============================================================================
+
+func _connect_triggers() -> void:
 	var parent = get_node(triggers_parent)
-	_triggers.clear()
+	if not parent:
+		push_error("[CoPilot] triggers_parent not found.")
+		return
 
 	for i in range(_notes.size()):
-		var expected_name = "PaceNoteTrigger_%d" % i
-		var area = parent.get_node_or_null(expected_name)
-
+		var area: Area3D = parent.get_node_or_null("PaceNoteTrigger_%d" % i)
 		if area == null:
-			push_warning("[CoPilot] Missing Area3D '%s' under triggers parent." % expected_name)
-			_triggers.append(null)
+			push_warning("[CoPilot] PaceNoteTrigger_%d not found." % i)
 			continue
-
-		if not area is Area3D:
-			push_warning("[CoPilot] '%s' is not an Area3D." % expected_name)
-			_triggers.append(null)
-			continue
-
-		_triggers.append(area)
 		area.body_entered.connect(_on_trigger_entered.bind(i))
 
-# ==============================================================================
-# INTERNAL - TRIGGERING
-# ==============================================================================
-
 func _on_trigger_entered(body: Node3D, note_index: int) -> void:
-	if not _running:
-		return
-	if body != _car_node:
+	if not _running or body != _car_node:
 		return
 	var now = Time.get_ticks_msec() / 1000.0
 	if now - _last_call_time < min_call_gap_seconds:
 		return
 	_last_call_time = now
-	_call_note(note_index)
+	_play_note(note_index)
 
-func _call_note(index: int) -> void:
-	if index < 0 or index >= _notes.size():
+# ==============================================================================
+# PLAYBACK
+# ==============================================================================
+
+func _play_note(index: int) -> void:
+	var note: PaceNote = _notes[index]
+	var duration = note.get_duration()
+
+	if duration <= 0.0:
+		push_warning("[CoPilot] Note %d '%s' has zero or negative duration — check your start/end times." % [index, note.label])
 		return
 
-	var note = _notes[index]
-	var words = _build_word_list(note)
+	_stop_timer.stop()
+	voice_player.stop()
+	_current_note = note
 
-	print("[CoPilot] %s" % " ".join(words))
+	voice_player.play()
+	voice_player.seek(note.get_start())
+
+	_stop_timer.wait_time = duration
+	_stop_timer.start()
+
+	print("[CoPilot] Playing '%s'  %dm%ds → %dm%ds  (%.2fs)" % [
+		note.label,
+		note.start_minutes, note.start_seconds,
+		note.end_minutes,   note.end_seconds,
+		duration
+	])
+
 	emit_signal("note_called", note)
-	_emit_lookahead(index + 1)
-
-	if voice_player:
-		_play_word_chain(words, note)
-	else:
-		emit_signal("note_finished", note)
 
 	if index == _notes.size() - 1:
 		emit_signal("stage_complete")
 
-# ==============================================================================
-# INTERNAL - SPEECH
-# ==============================================================================
-
-func _build_word_list(note: PaceNote) -> Array[String]:
-	var words: Array[String] = []
-
-	match note.direction:
-		PaceNote.Direction.LEFT:     words.append("left")
-		PaceNote.Direction.RIGHT:    words.append("right")
-		PaceNote.Direction.STRAIGHT: words.append("straight")
-
-	if note.severity >= 6:
-		words.append("flat")
-	elif note.severity >= 1:
-		words.append(str(note.severity))
-
-	for mod in note.modifiers:
-		words.append(mod.to_lower().replace(" ", "_"))
-
-	return words
-
-func _play_word_chain(words: Array[String], note: PaceNote) -> void:
-	var delay = 0.0
-
-	for word in words:
-		var path   = audio_folder + word + ".ogg"
-		var stream = load(path) if ResourceLoader.exists(path) else null
-
-		if stream:
-			get_tree().create_timer(delay).timeout.connect(
-				func(): voice_player.stream = stream; voice_player.play()
-			)
-			delay += stream.get_length() + clip_gap_seconds
-		else:
-			push_warning("[CoPilot] Missing clip: %s" % path)
-			delay += 0.45
-
-	get_tree().create_timer(delay).timeout.connect(
-		func(): emit_signal("note_finished", note)
-	)
-
-func _emit_lookahead(from_index: int) -> void:
-	var ahead: Array = []
-	for i in range(from_index, min(from_index + lookahead_count, _notes.size())):
-		ahead.append(_notes[i])
-	emit_signal("lookahead_changed", ahead)
+func _on_clip_ended() -> void:
+	voice_player.stop()
+	if _current_note:
+		emit_signal("note_finished", _current_note)
+	_current_note = null
