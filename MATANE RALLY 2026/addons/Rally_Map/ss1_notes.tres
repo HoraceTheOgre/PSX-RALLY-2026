@@ -141,25 +141,26 @@ metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_b1yj3"]
 script = ExtResource("1_lfwt7")
-label = "And3left"
-start_seconds = 36.0
-end_seconds = 37.0
+label = "And5left"
+start_seconds = 57.5
+end_seconds = 58.5
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_if0se"]
 script = ExtResource("1_lfwt7")
 label = "100"
-start_seconds = 23.5
-end_seconds = 24.5
+start_minutes = 1
+start_seconds = 52.0
+end_seconds = 52.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_d8s0u"]
 script = ExtResource("1_lfwt7")
 label = "Hairpinleft"
 start_minutes = 2
-start_seconds = 29.0
+start_seconds = 29.5
 end_minutes = 2
-end_seconds = 30.0
+end_seconds = 30.5
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_145jb"]
@@ -175,18 +176,18 @@ metadata/_custom_type_script = "uid://d358st3lagon"
 script = ExtResource("1_lfwt7")
 label = "Intosquareright"
 start_minutes = 2
-start_seconds = 53.0
+start_seconds = 53.5
 end_minutes = 2
-end_seconds = 54.3
+end_seconds = 55.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_w13ht"]
 script = ExtResource("1_lfwt7")
 label = "Andsquareright"
 start_minutes = 2
-start_seconds = 48.0
+start_seconds = 55.0
 end_minutes = 2
-end_seconds = 50.0
+end_seconds = 56.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_024hb"]
@@ -199,8 +200,10 @@ metadata/_custom_type_script = "uid://d358st3lagon"
 [sub_resource type="Resource" id="Resource_jk5nu"]
 script = ExtResource("1_lfwt7")
 label = "100"
-start_seconds = 23.5
-end_seconds = 24.5
+start_minutes = 1
+start_seconds = 52.0
+end_minutes = 1
+end_seconds = 53.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_n3iay"]
@@ -209,7 +212,7 @@ label = "Intohairpinright"
 start_minutes = 2
 start_seconds = 40.0
 end_minutes = 2
-end_seconds = 41.0
+end_seconds = 42.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_5cixw"]
@@ -225,9 +228,9 @@ metadata/_custom_type_script = "uid://d358st3lagon"
 script = ExtResource("1_lfwt7")
 label = "Intohairpinleft"
 start_minutes = 2
-start_seconds = 30.0
+start_seconds = 31.0
 end_minutes = 2
-end_seconds = 32.0
+end_seconds = 32.5
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_d8c6i"]
@@ -244,14 +247,14 @@ script = ExtResource("1_lfwt7")
 label = "5right"
 start_minutes = 1
 end_minutes = 1
-end_seconds = 1.0
+end_seconds = 2.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_r4jgp"]
 script = ExtResource("1_lfwt7")
 label = "Into1left"
 start_seconds = 12.0
-end_seconds = 13.0
+end_seconds = 13.5
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [resource]
