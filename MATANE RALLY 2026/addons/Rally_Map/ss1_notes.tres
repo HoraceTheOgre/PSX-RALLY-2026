@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="PaceNoteBook" load_steps=12 format=3 uid="uid://dymkmxrs2yan"]
+[gd_resource type="Resource" script_class="PaceNoteBook" load_steps=35 format=3 uid="uid://dymkmxrs2yan"]
 
 [ext_resource type="Script" uid="uid://d358st3lagon" path="res://Pacenote.gd" id="1_lfwt7"]
 [ext_resource type="AudioStream" uid="uid://c2kebgr7estnm" path="res://addons/Rally_Map/833028__sentientmattress__rally-co-driver-pacenote-cues.wav" id="1_xbwmi"]
@@ -62,11 +62,200 @@ label = "Intosquareright"
 start_minutes = 2
 start_seconds = 53.0
 end_minutes = 2
-end_seconds = 54.0
+end_seconds = 54.3
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_m5vsf"]
+script = ExtResource("1_lfwt7")
+label = "Intosqareright"
+start_minutes = 2
+start_seconds = 53.0
+end_minutes = 2
+end_seconds = 54.4
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_hssen"]
+script = ExtResource("1_lfwt7")
+label = "100"
+start_minutes = 1
+start_seconds = 52.0
+end_minutes = 1
+end_seconds = 53.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_o56cj"]
+script = ExtResource("1_lfwt7")
+label = "Into4left"
+start_seconds = 44.5
+end_seconds = 46.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_p8hki"]
+script = ExtResource("1_lfwt7")
+label = "And2left"
+start_seconds = 23.5
+end_seconds = 25.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_k7cfp"]
+script = ExtResource("1_lfwt7")
+label = "50"
+start_minutes = 1
+start_seconds = 47.0
+end_minutes = 1
+end_seconds = 48.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_ifipu"]
+script = ExtResource("1_lfwt7")
+label = "Intosquareright"
+start_minutes = 2
+start_seconds = 53.0
+end_minutes = 2
+end_seconds = 54.3
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_c6bwu"]
+script = ExtResource("1_lfwt7")
+label = "100"
+start_minutes = 1
+start_seconds = 52.0
+end_minutes = 1
+end_seconds = 53.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_amogq"]
+script = ExtResource("1_lfwt7")
+label = "Into2left"
+start_seconds = 23.5
+end_seconds = 24.5
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_k781h"]
+script = ExtResource("1_lfwt7")
+label = "Into5right"
+start_minutes = 1
+start_seconds = 1.0
+end_seconds = 3.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_b1yj3"]
+script = ExtResource("1_lfwt7")
+label = "And3left"
+start_seconds = 36.0
+end_seconds = 37.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_if0se"]
+script = ExtResource("1_lfwt7")
+label = "100"
+start_seconds = 23.5
+end_seconds = 24.5
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_d8s0u"]
+script = ExtResource("1_lfwt7")
+label = "Hairpinleft"
+start_minutes = 2
+start_seconds = 29.0
+end_minutes = 2
+end_seconds = 30.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_145jb"]
+script = ExtResource("1_lfwt7")
+label = "50"
+start_minutes = 1
+start_seconds = 47.0
+end_minutes = 1
+end_seconds = 48.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_rmstv"]
+script = ExtResource("1_lfwt7")
+label = "Intosquareright"
+start_minutes = 2
+start_seconds = 53.0
+end_minutes = 2
+end_seconds = 54.3
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_w13ht"]
+script = ExtResource("1_lfwt7")
+label = "Andsquareright"
+start_minutes = 2
+start_seconds = 48.0
+end_minutes = 2
+end_seconds = 50.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_024hb"]
+script = ExtResource("1_lfwt7")
+label = "Into5left"
+start_seconds = 56.0
+end_seconds = 57.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_jk5nu"]
+script = ExtResource("1_lfwt7")
+label = "100"
+start_seconds = 23.5
+end_seconds = 24.5
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_n3iay"]
+script = ExtResource("1_lfwt7")
+label = "Intohairpinright"
+start_minutes = 2
+start_seconds = 40.0
+end_minutes = 2
+end_seconds = 41.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_5cixw"]
+script = ExtResource("1_lfwt7")
+label = "50"
+start_minutes = 1
+start_seconds = 47.0
+end_minutes = 1
+end_seconds = 48.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_gw7sy"]
+script = ExtResource("1_lfwt7")
+label = "Intohairpinleft"
+start_minutes = 2
+start_seconds = 30.0
+end_minutes = 2
+end_seconds = 32.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_d8c6i"]
+script = ExtResource("1_lfwt7")
+label = "50"
+start_minutes = 1
+start_seconds = 47.0
+end_minutes = 1
+end_seconds = 48.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_tuubx"]
+script = ExtResource("1_lfwt7")
+label = "5right"
+start_minutes = 1
+end_minutes = 1
+end_seconds = 1.0
+metadata/_custom_type_script = "uid://d358st3lagon"
+
+[sub_resource type="Resource" id="Resource_r4jgp"]
+script = ExtResource("1_lfwt7")
+label = "Into1left"
+start_seconds = 12.0
+end_seconds = 13.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [resource]
 script = ExtResource("2_xbwmi")
 audio_file = ExtResource("1_xbwmi")
-notes = Array[ExtResource("1_lfwt7")]([SubResource("Resource_xbwmi"), SubResource("Resource_4tmyp"), SubResource("Resource_d58qv"), SubResource("Resource_bo57g"), SubResource("Resource_kk7i5"), SubResource("Resource_pjo83"), SubResource("Resource_u5ygk"), SubResource("Resource_4dxo8")])
+notes = Array[ExtResource("1_lfwt7")]([SubResource("Resource_xbwmi"), SubResource("Resource_4tmyp"), SubResource("Resource_d58qv"), SubResource("Resource_bo57g"), SubResource("Resource_kk7i5"), SubResource("Resource_pjo83"), SubResource("Resource_u5ygk"), SubResource("Resource_4dxo8"), SubResource("Resource_m5vsf"), SubResource("Resource_hssen"), SubResource("Resource_o56cj"), SubResource("Resource_p8hki"), SubResource("Resource_k7cfp"), SubResource("Resource_ifipu"), SubResource("Resource_c6bwu"), SubResource("Resource_amogq"), SubResource("Resource_k781h"), SubResource("Resource_b1yj3"), SubResource("Resource_if0se"), SubResource("Resource_d8s0u"), SubResource("Resource_145jb"), SubResource("Resource_rmstv"), SubResource("Resource_w13ht"), SubResource("Resource_024hb"), SubResource("Resource_jk5nu"), SubResource("Resource_n3iay"), SubResource("Resource_5cixw"), SubResource("Resource_gw7sy"), SubResource("Resource_d8c6i"), SubResource("Resource_tuubx"), SubResource("Resource_r4jgp")])
 metadata/_custom_type_script = "uid://bhn6ui8jag30a"
