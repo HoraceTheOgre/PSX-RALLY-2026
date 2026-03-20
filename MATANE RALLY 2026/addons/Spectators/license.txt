@@ -1,0 +1,11 @@
+Model Information:
+* title:	PSX Base - Civilian pack
+* source:	https://sketchfab.com/3d-models/psx-base-civilian-pack-0c6d0621d6c74f63badede2cb5313ef2
+* author:	MrPrisma3D (https://sketchfab.com/dammbaby.mp)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "PSX Base - Civilian pack" (https://sketchfab.com/3d-models/psx-base-civilian-pack-0c6d0621d6c74f63badede2cb5313ef2) by MrPrisma3D (https://sketchfab.com/dammbaby.mp) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
