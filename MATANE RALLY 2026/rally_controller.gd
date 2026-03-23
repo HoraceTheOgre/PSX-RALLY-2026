@@ -115,6 +115,7 @@ var prev_length: Array[float]       = [0.6, 0.6, 0.6, 0.6]
 var current_steer_angle: float      = 0.0
 var initial_transforms: Array[Transform3D]
 var accumulated_spin: Array[float]  = [0.0, 0.0, 0.0, 0.0]
+var input_blocked: bool = false
 
 # Per-wheel surface tracking
 var wheel_surfaces: Array[String]      = ["Tarmac", "Tarmac", "Tarmac", "Tarmac"]
@@ -173,10 +174,10 @@ func _ready() -> void:
 # ==============================================================================
 
 func _physics_process(delta: float) -> void:
-	var throttle        = Input.get_action_strength("accelerate")
-	var brake           = Input.get_action_strength("brake")
-	var steer_input     = Input.get_axis("steer_right", "steer_left")
-	is_handbrake_active = Input.is_action_pressed("handbrake")
+	var throttle        = Input.get_action_strength("accelerate") if not input_blocked else 0.0
+	var brake           = Input.get_action_strength("brake")      if not input_blocked else 0.0
+	var steer_input     = Input.get_axis("steer_right", "steer_left") if not input_blocked else 0.0
+	is_handbrake_active = Input.is_action_pressed("handbrake")    and not input_blocked
 
 	var speed_kph    = linear_velocity.length() * 3.6
 	var forward_dot  = linear_velocity.dot(-global_transform.basis.z)

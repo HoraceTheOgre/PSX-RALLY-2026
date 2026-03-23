@@ -6,7 +6,8 @@
 
 [sub_resource type="Resource" id="Resource_xbwmi"]
 script = ExtResource("1_lfwt7")
-label = "Finish"
+label = "Start"
+end_seconds = 6.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_4tmyp"]

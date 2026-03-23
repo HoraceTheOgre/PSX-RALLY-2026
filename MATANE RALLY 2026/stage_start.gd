@@ -1,63 +1,53 @@
 extends Node
 
-# ==============================================================================
-# StageStart.gd
-# - Starts the co-pilot immediately on scene load
-# - Disables the car's physics processing for 6 seconds so it can't move
-# Attach to any Node in your stage scene.
-# ==============================================================================
-
 @export_group("Setup")
-## Path to your CoPilot node
 @export var copilot: NodePath
-## Path to your car RigidBody3D
 @export var car: NodePath
-## How long to freeze the car before the player can drive (seconds)
 @export var countdown_duration: float = 6.0
 
 var _timer: float = 0.0
 var _released: bool = false
+var _frozen: bool = false
 var _car_node: RigidBody3D
 
-# ==============================================================================
-# READY — co-pilot starts immediately, car is frozen
-# ==============================================================================
-
 func _ready() -> void:
-	# Start co-pilot right away
+	# co-pilot check
 	if copilot:
 		get_node(copilot).start()
 		print("[StageStart] Co-pilot started.")
 	else:
 		push_warning("[StageStart] No copilot path assigned.")
 
-	# Freeze the car so it can't move or accept input
+	#input block and getting car node
 	if car:
 		_car_node = get_node(car)
-		_car_node.set_physics_process(false)
-		# Also lock it in place so gravity doesn't move it during the freeze
-		_car_node.freeze = true
-		print("[StageStart] Car frozen — releasing in %.0fs." % countdown_duration)
+		_car_node.input_blocked = true
+		print("[StageStart] Waiting for car to settle...")
 	else:
 		push_warning("[StageStart] No car path assigned.")
-
-# ==============================================================================
-# COUNTDOWN
-# ==============================================================================
 
 func _process(delta: float) -> void:
 	if _released:
 		return
 
-	_timer += delta
+	# Wait for car to settle before freezing
+	if not _frozen and _car_node:
+		if _car_node.linear_velocity.length() < 0.1:
+			_car_node.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
+			_car_node.freeze = true
+			_frozen = true
+			print("[StageStart] Car settled and frozen — releasing in %.0fs." % countdown_duration)
 
-	if _timer >= countdown_duration:
-		_release_car()
+	# Only start countdown once frozen
+	if _frozen:
+		_timer += delta
+		if _timer >= countdown_duration:
+			_release_car()
 
 func _release_car() -> void:
+	#releases car after 6 seconds
 	_released = true
-
 	if _car_node:
 		_car_node.freeze = false
-		_car_node.set_physics_process(true)
+		_car_node.input_blocked = false
 		print("[StageStart] Car released — go!")

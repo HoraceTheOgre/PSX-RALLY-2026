@@ -7,11 +7,14 @@ extends CanvasLayer
 @onready var speed_label: Label = $SpeedLabel
 
 func _ready():
+	# Style the label
+	speed_label.add_theme_font_size_override("font_size", 72)
+	speed_label.add_theme_color_override("font_color", Color.BLACK)
+	
 	# If car not assigned, try to find it automatically
 	if car == null:
 		car = get_tree().get_first_node_in_group("player_car")
 		if car == null:
-			# Fallback: try to get parent if HUD is child of car
 			var parent = get_parent()
 			if parent is RigidBody3D:
 				car = parent
