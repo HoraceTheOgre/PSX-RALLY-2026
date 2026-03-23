@@ -8,7 +8,7 @@ extends CanvasLayer
 
 func _ready():
 	# Style the label
-	speed_label.add_theme_font_size_override("font_size", 72)
+	speed_label.add_theme_font_size_override("font_size", 48)
 	speed_label.add_theme_color_override("font_color", Color.BLACK)
 	
 	# If car not assigned, try to find it automatically
@@ -27,4 +27,4 @@ func _process(_delta: float):
 	var speed_kph: float = car.linear_velocity.length() * 3.6
 	
 	# Update the speed display
-	speed_label.text = "%d km/h" % int(speed_kph * 2)
+	speed_label.text = "%d km/h" % int(speed_kph * 1.5)
