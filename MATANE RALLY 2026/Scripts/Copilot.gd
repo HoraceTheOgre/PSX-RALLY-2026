@@ -79,13 +79,14 @@ func _connect_triggers() -> void:
 	if not parent:
 		push_error("[CoPilot] triggers_parent not found.")
 		return
-
 	for i in range(_notes.size()):
 		var area: Area3D = parent.get_node_or_null("PaceNoteTrigger_%d" % i)
 		if area == null:
 			push_warning("[CoPilot] PaceNoteTrigger_%d not found." % i)
 			continue
-		area.body_entered.connect(_on_trigger_entered.bind(i))
+		# Only connect if not already connected
+		if not area.body_entered.is_connected(_on_trigger_entered.bind(i)):
+			area.body_entered.connect(_on_trigger_entered.bind(i))
 
 func _on_trigger_entered(body: Node3D, note_index: int) -> void:
 	if not _running or body != _car_node:

@@ -135,7 +135,8 @@ metadata/_custom_type_script = "uid://d358st3lagon"
 script = ExtResource("1_lfwt7")
 label = "Into5right"
 start_minutes = 1
-start_seconds = 1.0
+start_seconds = 1.5
+end_minutes = 1
 end_seconds = 3.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
@@ -151,7 +152,8 @@ script = ExtResource("1_lfwt7")
 label = "100"
 start_minutes = 1
 start_seconds = 52.0
-end_seconds = 52.0
+end_minutes = 1
+end_seconds = 53.0
 metadata/_custom_type_script = "uid://d358st3lagon"
 
 [sub_resource type="Resource" id="Resource_d8s0u"]

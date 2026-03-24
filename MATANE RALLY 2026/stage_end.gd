@@ -45,7 +45,7 @@ func _ready() -> void:
 # ==============================================================================
 
 func _physics_process(delta: float) -> void:
-	#if nothing itnot work
+	#if nothing it not work
 	if not car or _state == State.NONE or _state == State.STOPPED:
 		return
 
@@ -74,13 +74,13 @@ func _physics_process(delta: float) -> void:
 			car.input_blocked    = true
 			_state = State.STOPPED
 			print("[StageEnd] Stage complete!")
-			_on_stage_complete()
 
 # ==============================================================================
 # ZONE SIGNALS
 # ==============================================================================
 
 func _on_slow_zone_entered(body: Node) -> void:
+	#changement de state
 	if body != car:
 		return
 	if _state == State.NONE:
@@ -88,17 +88,9 @@ func _on_slow_zone_entered(body: Node) -> void:
 		print("[StageEnd] Slow zone entered — reducing speed to %.0f km/h." % slow_zone_target_kph)
 
 func _on_stop_zone_entered(body: Node) -> void:
+	#changement de state
 	if body != car:
 		return
 	if _state != State.STOPPED:
 		_state = State.STOPPING
 		print("[StageEnd] Stop zone entered — bringing car to a halt.")
-
-# ==============================================================================
-# STAGE COMPLETE
-# ==============================================================================
-
-func _on_stage_complete() -> void:
-	# Hook into this function to trigger your finish screen,
-	# play a fanfare, show the stage time, etc.
-	pass

@@ -1,0 +1,92 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://race_controller.gd" id="1_7jo7d"]
+
+[node name="Timer" type="CanvasLayer" node_paths=PackedStringArray("stage_start", "copilot", "car", "slow_zone")]
+script = ExtResource("1_7jo7d")
+stage_start = NodePath("")
+copilot = NodePath("")
+car = NodePath("")
+slow_zone = NodePath("")
+retry_position = Vector3(333, 0.2, 419)
+retry_rotation = Vector3(0, 116, 0)
+
+[node name="_Label_3" type="Label" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 20.0
+offset_right = -20.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 52
+text = "00:18.39"
+horizontal_alignment = 2
+
+[node name="_Label_4" type="Label" parent="."]
+visible = false
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.2
+anchor_right = 0.5
+anchor_bottom = 0.2
+offset_left = -250.0
+offset_right = 250.0
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 56
+horizontal_alignment = 1
+
+[node name="_Label_5" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 56
+horizontal_alignment = 1
+
+[node name="_Label_6" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = 120.0
+offset_right = 400.0
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+
+[node name="_Label_7" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = 180.0
+offset_right = 400.0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1
+
+[node name="_Button_8" type="Button" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 250.0
+offset_right = 120.0
+offset_bottom = 320.0
+theme_override_font_sizes/font_size = 44
+text = "RETRY"
