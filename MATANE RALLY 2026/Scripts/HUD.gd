@@ -8,7 +8,7 @@ extends CanvasLayer
 
 func _ready():
 	# Style the label
-	speed_label.add_theme_font_size_override("font_size", 48)
+	speed_label.add_theme_font_size_override("font_size", 24)
 	speed_label.add_theme_color_override("font_color", Color.BLACK)
 	
 	# If car not assigned, try to find it automatically
