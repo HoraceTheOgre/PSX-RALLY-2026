@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=4 uid="uid://db8ns0mg0cwjd"]
+[gd_scene load_steps=8 format=4 uid="uid://db8ns0mg0cwjd"]
 
 [ext_resource type="Texture2D" uid="uid://b2ep2ujbb3ibq" path="res://Trees/tree_pack_1.1/textures/tree08.png" id="1_tdfhk"]
+[ext_resource type="Shader" uid="uid://d0tbv01tims7" path="res://ps1_models.gdshader" id="1_wafbi"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cq5al"]
 resource_name = "tree08"
@@ -42,11 +43,14 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_wop7e")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_og42a"]
-transparency = 2
-alpha_scissor_threshold = 0.5
-alpha_antialiasing_mode = 0
-albedo_texture = ExtResource("1_tdfhk")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qexrh"]
+render_priority = 0
+shader = ExtResource("1_wafbi")
+shader_parameter/albedo_texture = ExtResource("1_tdfhk")
+shader_parameter/texture_tile = Vector2(1, 1)
+shader_parameter/snap_enabled = true
+shader_parameter/snap_resolution = 148.0
+shader_parameter/affine_weight = 0.1
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_tdfhk"]
 height = 4.0
@@ -57,7 +61,7 @@ height = 4.0
 transform = Transform3D(1, 0, 0, 0, 1, 1.6292067e-07, 0, -1.6292067e-07, 1, 0, 0, 0)
 mesh = SubResource("ArrayMesh_brxlv")
 skeleton = NodePath("")
-surface_material_override/0 = SubResource("StandardMaterial3D_og42a")
+surface_material_override/0 = SubResource("ShaderMaterial_qexrh")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="tree08"]
 
