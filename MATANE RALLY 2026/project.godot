@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="MATANE RALLY 2026"
-run/main_scene="uid://ct8e66ismcixq"
+run/main_scene="res://COLLISION.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -21,10 +21,6 @@ window/size/viewport_width=576
 window/size/viewport_height=324
 window/size/mode=3
 window/stretch/mode="viewport"
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
 
 [input]
 
