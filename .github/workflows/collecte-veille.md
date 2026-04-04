@@ -1,0 +1,85 @@
+name: Collecte données veille
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'    # Lundis 8h UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write          # Pour pouvoir commit
+
+jobs:
+  collecte:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collecter les stats GitHub
+        run: |
+          mkdir -p data
+
+          # ===== MODIFIER CES VARIABLES =====
+          TECHNO="godotengine/godot"
+          CONCURRENT1="bevyengine/bevy"
+          CONCURRENT2="stride3d/stride"
+          CONCURRENT3=""
+          # ====================================
+
+          # Stats de la techno principale
+          curl -s "https://api.github.com/repos/$TECHNO" \
+            > data/techno-stats.json
+
+          # Stats des concurrents
+          echo '[' > data/comparaison.json
+          for REPO in $TECHNO $CONCURRENT1 $CONCURRENT2 $CONCURRENT3; do
+            if [ -n "$REPO" ]; then
+              STATS=$(curl -s "https://api.github.com/repos/$REPO")
+              NOM=$(echo $STATS | jq -r '.name')
+              STARS=$(echo $STATS | jq '.stargazers_count')
+              FORKS=$(echo $STATS | jq '.forks_count')
+              ISSUES=$(echo $STATS | jq '.open_issues_count')
+              echo "{\"nom\":\"$NOM\",\"repo\":\"$REPO\"," \
+                "\"stars\":$STARS,\"forks\":$FORKS," \
+                "\"issues\":$ISSUES}," >> data/comparaison.json
+            fi
+          done
+          # Fermer le JSON (enlever virgule finale)
+          sed -i '$ s/,$//' data/comparaison.json
+          echo ']' >> data/comparaison.json
+
+          # Activité des commits (52 semaines)
+          curl -s \
+            "https://api.github.com/repos/$TECHNO/stats/participation" \
+            > data/commits.json
+
+          # Dernière release
+          curl -s \
+            "https://api.github.com/repos/$TECHNO/releases/latest" \
+            > data/release.json
+
+      - name: Collecter les flux RSS
+        run: |
+          # ===== MODIFIER VOS FLUX =====
+          FLUX1="https://godotengine.org/rss.xml"
+          FLUX2="https://www.reddit.com/r/godot/.rss"
+          # ================================
+
+          echo '[]' > data/rss.json
+          for URL in $FLUX1 $FLUX2; do
+            curl -sL "$URL" -o data/flux-temp.xml || true
+          done
+          # Le parsing RSS sera fait côté client (HTML)
+
+      - name: Générer le timestamp
+        run: |
+          echo "{\"derniere_maj\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+            > data/meta.json
+
+      - name: Commit les données
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'actions@github.com'
+          git add data/
+          git diff --staged --quiet || \
+            git commit -m "Mise à jour données veille [skip ci]"
+          git push
