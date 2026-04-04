@@ -1,0 +1,44 @@
+name: Audit de sécurité
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+
+      # --- C# / Godot ---
+       - name: Audit NuGet
+         run: dotnet list package --vulnerable > rapport.txt || true
+
+
+
+      - name: Créer Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const rapport = fs.readFileSync('rapport.txt','utf8');
+            const date = new Date().toISOString().split('T')[0];
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Audit sécurité - ${date}`,
+              body: `# Audit\n\n\`\`\`\n${rapport}\n\`\`\``,
+              labels: ['veille-auto', 'sécurité']
+            });
+
+      - name: Poster dans Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          RAPPORT=$(head -20 rapport.txt)
+          DATE=$(date +%Y-%m-%d)
+          curl -H "Content-Type: application/json" \
+            -d "{\"content\":\"\ud83d\udd12 **Audit $DATE**\n\`\`\`\n$RAPPORT\n\`\`\`\"}" \
+            $WEBHOOK
