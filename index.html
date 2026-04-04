@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord — Veille technologique</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        /* ============================================
+           CONFIGURATION VISUELLE
+           ============================================ */
+        :root {
+            --c-fond: #0f0f0f;
+            --c-surface: #1a1a1a;
+            --c-surface-hover: #222222;
+            --c-bordure: #2a2a2a;
+            --c-texte: #e4e4e7;
+            --c-texte-secondaire: #a1a1aa;
+            --c-accent: #10b981;
+            --c-accent-dim: rgba(16, 185, 129, 0.15);
+            --c-orange: #f59e0b;
+            --c-rouge: #ef4444;
+            --c-bleu: #3b82f6;
+            --c-violet: #8b5cf6;
+            --c-cyan: #06b6d4;
+            --radius: 10px;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Source Sans 3', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--c-fond);
+            color: var(--c-texte);
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           EN-TÊTE
+           ============================================ */
+        .entete {
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid var(--c-bordure);
+        }
+
+        .entete-contenu {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .entete h1 {
+            font-family: var(--mono);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--c-accent);
+        }
+
+        .entete h1 span {
+            color: var(--c-texte);
+            font-weight: 400;
+        }
+
+        .entete-meta {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--c-texte-secondaire);
+        }
+
+        /* ============================================
+           GRILLE PRINCIPALE
+           ============================================ */
+        .grille-principale {
+            max-width: 1300px;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1rem;
+        }
+
+        /* ============================================
+           WIDGET GÉNÉRIQUE
+           ============================================ */
+        .widget {
+            background: var(--c-surface);
+            border: 1px solid var(--c-bordure);
+            border-radius: var(--radius);
+            padding: 1.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .widget:hover {
+            border-color: #333;
+        }
+
+        .widget-label {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--c-texte-secondaire);
+            margin-bottom: 0.8rem;
+        }
+
+        .widget-valeur {
+            font-family: var(--mono);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--c-texte);
+            line-height: 1;
+        }
+
+        .widget-sous-texte {
+            font-size: 0.8rem;
+            color: var(--c-texte-secondaire);
+            margin-top: 0.3rem;
+        }
+
+        .widget-chargement {
+            color: var(--c-texte-secondaire);
+            font-family: var(--mono);
+            font-size: 0.8rem;
+        }
+
+        .widget-erreur {
+            color: var(--c-rouge);
+            font-family: var(--mono);
+            font-size: 0.75rem;
+        }
+
+        /* Tailles de grille */
+        .w-3  { grid-column: span 3; }
+        .w-4  { grid-column: span 4; }
+        .w-6  { grid-column: span 6; }
+        .w-8  { grid-column: span 8; }
+        .w-12 { grid-column: span 12; }
+
+        /* ============================================
+           WIDGET — STATS RAPIDES (petites cartes)
+           ============================================ */
+        .stat-icone {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .stat-icone.vert   { background: rgba(16, 185, 129, 0.15); color: var(--c-accent); }
+        .stat-icone.bleu   { background: rgba(59, 130, 246, 0.15); color: var(--c-bleu); }
+        .stat-icone.orange { background: rgba(245, 158, 11, 0.15); color: var(--c-orange); }
+        .stat-icone.violet { background: rgba(139, 92, 246, 0.15); color: var(--c-violet); }
+        .stat-icone.cyan   { background: rgba(6, 182, 212, 0.15); color: var(--c-cyan); }
+        .stat-icone.rouge  { background: rgba(239, 68, 68, 0.15); color: var(--c-rouge); }
+
+        /* ============================================
+           WIDGET — GRAPHIQUE
+           ============================================ */
+        .widget-graphique {
+            position: relative;
+            height: 220px;
+        }
+
+        .widget-graphique canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* ============================================
+           WIDGET — LISTE (RSS, Issues)
+           ============================================ */
+        .liste-item {
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--c-bordure);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 0.8rem;
+        }
+
+        .liste-item:last-child {
+            border-bottom: none;
+        }
+
+        .liste-item a {
+            color: var(--c-texte);
+            text-decoration: none;
+            font-size: 0.85rem;
+            line-height: 1.3;
+            flex: 1;
+        }
+
+        .liste-item a:hover {
+            color: var(--c-accent);
+        }
+
+        .liste-date {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--c-texte-secondaire);
+            white-space: nowrap;
+        }
+
+        .liste-source {
+            font-family: var(--mono);
+            font-size: 0.6rem;
+            color: var(--c-texte-secondaire);
+            background: var(--c-fond);
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        /* ============================================
+           WIDGET — COMPARAISON
+           ============================================ */
+        .comparaison-ligne {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.5rem 0;
+        }
+
+        .comparaison-nom {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .comparaison-barre-fond {
+            flex: 1;
+            height: 6px;
+            background: var(--c-fond);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .comparaison-barre {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+
+        .comparaison-valeur {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--c-texte-secondaire);
+            width: 60px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           PIED
+           ============================================ */
+        .pied {
+            max-width: 1300px;
+            margin: 2rem auto;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--c-texte-secondaire);
+            border-top: 1px solid var(--c-bordure);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 900px) {
+            .w-3, .w-4, .w-6, .w-8 { grid-column: span 6; }
+        }
+
+        @media (max-width: 600px) {
+            .w-3, .w-4, .w-6, .w-8, .w-12 { grid-column: span 12; }
+            .entete-contenu { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="entete">
+    <div class="entete-contenu">
+        <h1 id="titre-projet">⏳ <span>Chargement...</span></h1>
+        <div class="entete-meta" id="derniere-maj"></div>
+    </div>
+</header>
+
+<main class="grille-principale">
+
+    <!-- STATS RAPIDES -->
+    <div class="widget w-3" id="widget-stars">
+        <div class="stat-icone orange">⭐</div>
+        <div class="widget-label">Stars</div>
+        <div class="widget-valeur widget-chargement">...</div>
+    </div>
+
+    <div class="widget w-3" id="widget-forks">
+        <div class="stat-icone bleu">🔱</div>
+        <div class="widget-label">Forks</div>
+        <div class="widget-valeur widget-chargement">...</div>
+    </div>
+
+    <div class="widget w-3" id="widget-issues">
+        <div class="stat-icone violet">📋</div>
+        <div class="widget-label">Issues ouvertes</div>
+        <div class="widget-valeur widget-chargement">...</div>
+    </div>
+
+    <div class="widget w-3" id="widget-release">
+        <div class="stat-icone vert">🏷️</div>
+        <div class="widget-label">Dernière release</div>
+        <div class="widget-valeur widget-chargement" style="font-size:1.2rem">...</div>
+        <div class="widget-sous-texte" id="release-date"></div>
+    </div>
+
+    <!-- GRAPHIQUE — ACTIVITÉ DES COMMITS -->
+    <div class="widget w-8">
+        <div class="widget-label">Activité des commits (52 dernières semaines)</div>
+        <div class="widget-graphique">
+            <canvas id="graphique-commits"></canvas>
+        </div>
+    </div>
+
+    <!-- COMPARAISON DE POPULARITÉ -->
+    <div class="widget w-4" id="widget-comparaison">
+        <div class="widget-label">Comparaison — Stars GitHub</div>
+        <div id="comparaison-contenu" class="widget-chargement">Chargement...</div>
+    </div>
+
+    <!-- FLUX RSS COMBINÉ -->
+    <div class="widget w-6" id="widget-rss">
+        <div class="widget-label">Fil de nouvelles (RSS)</div>
+        <div id="rss-contenu" class="widget-chargement">Chargement des flux...</div>
+    </div>
+
+    <!-- ISSUES AUTOMATIQUES DU REPO ÉTUDIANT -->
+    <div class="widget w-6" id="widget-issues-auto">
+        <div class="widget-label">Issues automatiques — mon repo</div>
+        <div id="issues-auto-contenu" class="widget-chargement">Chargement...</div>
+    </div>
+
+    <!-- COMMUNAUTÉ — STACK OVERFLOW -->
+    <!-- SUPPRIMER CETTE BOÎTE SI NON PERTINENT -->
+    <div class="widget w-4" id="widget-stackoverflow">
+        <div class="stat-icone cyan">💬</div>
+        <div class="widget-label">Stack Overflow</div>
+        <div class="widget-valeur widget-chargement">...</div>
+        <div class="widget-sous-texte">questions tagguées</div>
+    </div>
+
+    <!-- NPM DOWNLOADS (si applicable) -->
+    <!-- SUPPRIMER CETTE BOÎTE SI NON PERTINENT -->
+    <div class="widget w-8" id="widget-npm">
+        <div class="widget-label">Téléchargements npm (6 derniers mois)</div>
+        <div class="widget-graphique">
+            <canvas id="graphique-npm"></canvas>
+        </div>
+    </div>
+
+</main>
+
+<footer class="pied">
+    <!-- TODO: Votre nom -->
+    [JULIEN OTIS] — 420-663-MT Projet de spécialisation — Cégep de Matane — H2026
+</footer>
+
+<script>
+/* ======================================================
+   CONFIGURATION — L'ÉTUDIANT MODIFIE CETTE SECTION
+   ====================================================== */
+let CONFIG = {
+
+    // Nom du projet affiché dans l'en-tête
+    nomProjet: "PSX RALLY 2026",
+
+    // Repo GitHub de la TECHNOLOGIE PRINCIPALE (pas votre repo)
+    // Exemple: "godotengine/godot", "facebook/react", "laravel/framework"
+    repoTechno: "godotengine/godot",
+
+    // Votre repo GitHub (pour les Issues automatiques)
+    // Exemple: "monusername/mon-projet-specialisation"
+    monRepo: "cegepmatane/projet-specialise-HoraceTheOgre/",
+
+    // Repos à comparer (stars GitHub)
+    // Mettez votre techno principale en premier
+    comparaison: [
+        { nom: "Godot",   repo: "godotengine/godot" },
+        { nom: "Unity",   repo: "AdrienMusic/unity-game-template" },
+        { nom: "Bevy",    repo: "bevyengine/bevy" },
+        { nom: "Stride",  repo: "stride3d/stride" }
+    ],
+
+    // Tag Stack Overflow (LAISSER VIDE si pas applicable)
+    // Exemple: "godot", "reactjs", "laravel", ""
+    tagStackOverflow: "godot",
+
+    // Flux RSS à combiner
+    // Utiliser un proxy CORS : le template utilise allorigins
+    fluxRss: [
+        {
+            nom: "Blog officiel",
+            url: "https://godotengine.org/rss.xml"
+        },
+        {
+            nom: "Reddit",
+            url: "https://www.reddit.com/r/godot/.rss"
+        }
+    ],
+
+    // Couleurs pour les graphiques
+    couleurs: {
+        principal: "#10b981",
+        secondaire: "#3b82f6",
+        comparaison: ["#10b981", "#f59e0b", "#8b5cf6", "#06b6d4", "#ef4444"]
+    }
+};
+
+/* ======================================================
+   CODE DU DASHBOARD — NE PAS MODIFIER SOUS CETTE LIGNE
+   (sauf si vous savez ce que vous faites)
+   ====================================================== */
+
+// --- Utilitaires ---
+function formaterNombre(nombre) {
+    if (nombre >= 1000000) return (nombre / 1000000).toFixed(1) + "M";
+    if (nombre >= 1000) return (nombre / 1000).toFixed(1) + "k";
+    return nombre.toString();
+}
+
+function formaterDate(dateStr) {
+    let date = new Date(dateStr);
+    return date.toLocaleDateString("fr-CA", { year: "numeric", month: "short", day: "numeric" });
+}
+
+function afficherErreur(elementId, message) {
+    let element = document.getElementById(elementId);
+    if (element) {
+        let cible = element.querySelector(".widget-valeur") || element.querySelector(".widget-chargement");
+        if (cible) {
+            cible.textContent = message;
+            cible.classList.add("widget-erreur");
+        }
+    }
+}
+
+// --- Initialisation de l'en-tête ---
+function initialiserEntete() {
+    document.getElementById("titre-projet").innerHTML =
+        CONFIG.nomProjet + " <span>— veille technologique</span>";
+    document.title = "Veille — " + CONFIG.nomProjet;
+    document.getElementById("derniere-maj").textContent =
+        "Dernière visite : " + new Date().toLocaleString("fr-CA");
+}
+
+// --- Fetch GitHub : stats du repo techno ---
+async function chargerStatsTechno() {
+    try {
+        let reponse = await fetch("https://api.github.com/repos/" + CONFIG.repoTechno);
+        let data = await reponse.json();
+
+        // Stars
+        let widgetStars = document.querySelector("#widget-stars .widget-valeur");
+        widgetStars.textContent = formaterNombre(data.stargazers_count);
+        widgetStars.classList.remove("widget-chargement");
+
+        // Forks
+        let widgetForks = document.querySelector("#widget-forks .widget-valeur");
+        widgetForks.textContent = formaterNombre(data.forks_count);
+        widgetForks.classList.remove("widget-chargement");
+
+        // Issues ouvertes
+        let widgetIssues = document.querySelector("#widget-issues .widget-valeur");
+        widgetIssues.textContent = formaterNombre(data.open_issues_count);
+        widgetIssues.classList.remove("widget-chargement");
+    } catch (erreur) {
+        afficherErreur("widget-stars", "Erreur API");
+        console.error("Erreur stats techno:", erreur);
+    }
+}
+
+// --- Fetch GitHub : dernière release ---
+async function chargerDerniereRelease() {
+    try {
+        let reponse = await fetch("https://api.github.com/repos/" + CONFIG.repoTechno + "/releases/latest");
+        let data = await reponse.json();
+
+        let widgetRelease = document.querySelector("#widget-release .widget-valeur");
+        widgetRelease.textContent = data.tag_name || "Aucune";
+        widgetRelease.classList.remove("widget-chargement");
+
+        document.getElementById("release-date").textContent =
+            data.published_at ? formaterDate(data.published_at) : "";
+    } catch (erreur) {
+        afficherErreur("widget-release", "N/A");
+    }
+}
+
+// --- Fetch GitHub : activité des commits (52 semaines) ---
+async function chargerGraphiqueCommits() {
+    try {
+        let reponse = await fetch("https://api.github.com/repos/" + CONFIG.repoTechno + "/stats/participation");
+        let data = await reponse.json();
+
+        if (!data.all) {
+            // L'API GitHub retourne parfois 202 (calcul en cours)
+            setTimeout(chargerGraphiqueCommits, 3000);
+            return;
+        }
+
+        let labels = data.all.map(function(valeur, index) {
+            return index % 4 === 0 ? "S" + (index + 1) : "";
+        });
+
+        new Chart(document.getElementById("graphique-commits"), {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data.all,
+                    backgroundColor: CONFIG.couleurs.principal + "40",
+                    borderColor: CONFIG.couleurs.principal,
+                    borderWidth: 1,
+                    borderRadius: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { color: "#2a2a2a" },
+                        ticks: { color: "#71717a", font: { family: "JetBrains Mono", size: 9 } }
+                    },
+                    y: {
+                        grid: { color: "#2a2a2a" },
+                        ticks: { color: "#71717a", font: { family: "JetBrains Mono", size: 9 } }
+                    }
+                }
+            }
+        });
+    } catch (erreur) {
+        console.error("Erreur graphique commits:", erreur);
+    }
+}
+
+// --- Fetch GitHub : comparaison de stars ---
+async function chargerComparaison() {
+    let contenu = document.getElementById("comparaison-contenu");
+    try {
+        let resultats = [];
+        for (let item of CONFIG.comparaison) {
+            let reponse = await fetch("https://api.github.com/repos/" + item.repo);
+            let data = await reponse.json();
+            resultats.push({ nom: item.nom, stars: data.stargazers_count || 0 });
+        }
+
+        let maxStars = Math.max(...resultats.map(function(r) { return r.stars; }));
+        let html = "";
+
+        resultats.forEach(function(r, index) {
+            let pourcentage = (r.stars / maxStars * 100).toFixed(0);
+            let couleur = CONFIG.couleurs.comparaison[index % CONFIG.couleurs.comparaison.length];
+            html += '<div class="comparaison-ligne">'
+                + '<span class="comparaison-nom">' + r.nom + '</span>'
+                + '<div class="comparaison-barre-fond">'
+                + '<div class="comparaison-barre" style="width:' + pourcentage + '%;background:' + couleur + '"></div>'
+                + '</div>'
+                + '<span class="comparaison-valeur">' + formaterNombre(r.stars) + '</span>'
+                + '</div>';
+        });
+
+        contenu.innerHTML = html;
+    } catch (erreur) {
+        contenu.innerHTML = '<span class="widget-erreur">Erreur de chargement</span>';
+    }
+}
+
+// --- Fetch RSS via proxy CORS ---
+async function chargerFluxRss() {
+    let contenu = document.getElementById("rss-contenu");
+
+    if (CONFIG.fluxRss.length === 0) {
+        contenu.innerHTML = '<span class="widget-erreur">Aucun flux RSS configuré</span>';
+        return;
+    }
+
+    try {
+        let tousLesArticles = [];
+
+        for (let flux of CONFIG.fluxRss) {
+            try {
+                let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(flux.url);
+                let reponse = await fetch(proxyUrl);
+                let texte = await reponse.text();
+                let parser = new DOMParser();
+                let xml = parser.parseFromString(texte, "text/xml");
+
+                // RSS 2.0
+                let items = xml.querySelectorAll("item");
+                // Atom
+                if (items.length === 0) items = xml.querySelectorAll("entry");
+
+                items.forEach(function(item, index) {
+                    if (index >= 5) return;
+
+                    let titre = item.querySelector("title") ? item.querySelector("title").textContent : "Sans titre";
+                    let lien = item.querySelector("link");
+                    let lienHref = "";
+
+                    if (lien) {
+                        lienHref = lien.getAttribute("href") || lien.textContent || "#";
+                    }
+
+                    let dateElement = item.querySelector("pubDate") || item.querySelector("published") || item.querySelector("updated");
+                    let dateStr = dateElement ? dateElement.textContent : "";
+
+                    tousLesArticles.push({
+                        titre: titre.substring(0, 80),
+                        lien: lienHref,
+                        date: dateStr,
+                        source: flux.nom
+                    });
+                });
+            } catch (erreurFlux) {
+                console.warn("Erreur flux " + flux.nom + ":", erreurFlux);
+            }
+        }
+
+        // Trier par date décroissante
+        tousLesArticles.sort(function(a, b) {
+            return new Date(b.date) - new Date(a.date);
+        });
+
+        // Afficher les 8 plus récents
+        let html = "";
+        tousLesArticles.slice(0, 8).forEach(function(article) {
+            html += '<div class="liste-item">'
+                + '<a href="' + article.lien + '" target="_blank">' + article.titre + '</a>'
+                + '<span class="liste-source">' + article.source + '</span>'
+                + '</div>';
+        });
+
+        contenu.innerHTML = html || '<span class="widget-erreur">Aucun article trouvé</span>';
+    } catch (erreur) {
+        contenu.innerHTML = '<span class="widget-erreur">Erreur RSS</span>';
+    }
+}
+
+// --- Fetch GitHub : Issues auto-créées du repo étudiant ---
+async function chargerIssuesAuto() {
+    let contenu = document.getElementById("issues-auto-contenu");
+
+    if (!CONFIG.monRepo || CONFIG.monRepo === "username/mon-projet") {
+        contenu.innerHTML = '<span class="widget-erreur">Configurez monRepo dans CONFIG</span>';
+        return;
+    }
+
+    try {
+        let reponse = await fetch("https://api.github.com/repos/" + CONFIG.monRepo + "/issues?state=all&per_page=10&sort=created&direction=desc");
+        let issues = await reponse.json();
+
+        if (!Array.isArray(issues) || issues.length === 0) {
+            contenu.innerHTML = "Aucune issue trouvée";
+            return;
+        }
+
+        let html = "";
+        issues.forEach(function(issue) {
+            // Ignorer les PR (GitHub retourne les PR dans /issues aussi)
+            if (issue.pull_request) return;
+
+            html += '<div class="liste-item">'
+                + '<a href="' + issue.html_url + '" target="_blank">#' + issue.number + ' — ' + issue.title + '</a>'
+                + '<span class="liste-date">' + formaterDate(issue.created_at) + '</span>'
+                + '</div>';
+        });
+
+        contenu.innerHTML = html || "Aucune issue trouvée";
+    } catch (erreur) {
+        contenu.innerHTML = '<span class="widget-erreur">Erreur chargement issues</span>';
+    }
+}
+
+// --- Fetch Stack Overflow ---
+async function chargerStackOverflow() {
+    let widget = document.getElementById("widget-stackoverflow");
+
+    if (!CONFIG.tagStackOverflow) {
+        widget.style.display = "none";
+        return;
+    }
+
+    try {
+        let reponse = await fetch("https://api.stackexchange.com/2.3/tags/" + CONFIG.tagStackOverflow + "/info?site=stackoverflow");
+        let data = await reponse.json();
+
+        if (data.items && data.items.length > 0) {
+            let widgetValeur = widget.querySelector(".widget-valeur");
+            widgetValeur.textContent = formaterNombre(data.items[0].count);
+            widgetValeur.classList.remove("widget-chargement");
+        }
+    } catch (erreur) {
+        afficherErreur("widget-stackoverflow", "N/A");
+    }
+}
+
+// --- Fetch npm downloads ---
+async function chargerNpmDownloads() {
+    let widget = document.getElementById("widget-npm");
+
+    if (!CONFIG.packageNpm) {
+        widget.style.display = "none";
+        return;
+    }
+
+    try {
+        // 6 derniers mois, par semaine
+        let finDate = new Date();
+        let debutDate = new Date();
+        debutDate.setMonth(debutDate.getMonth() - 6);
+
+        let debut = debutDate.toISOString().split("T")[0];
+        let fin = finDate.toISOString().split("T")[0];
+
+        let reponse = await fetch("https://api.npmjs.org/downloads/range/" + debut + ":" + fin + "/" + CONFIG.packageNpm);
+        let data = await reponse.json();
+
+        if (!data.downloads) {
+            widget.style.display = "none";
+            return;
+        }
+
+        // Agréger par semaine
+        let parSemaine = [];
+        let labels = [];
+        let somme = 0;
+        let compteur = 0;
+
+        data.downloads.forEach(function(jour, index) {
+            somme += jour.downloads;
+            compteur++;
+
+            if (compteur === 7 || index === data.downloads.length - 1) {
+                parSemaine.push(somme);
+                labels.push(formaterDate(jour.day));
+                somme = 0;
+                compteur = 0;
+            }
+        });
+
+        new Chart(document.getElementById("graphique-npm"), {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: parSemaine,
+                    borderColor: CONFIG.couleurs.secondaire,
+                    backgroundColor: CONFIG.couleurs.secondaire + "20",
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { color: "#2a2a2a" },
+                        ticks: {
+                            color: "#71717a",
+                            font: { family: "JetBrains Mono", size: 9 },
+                            maxTicksLimit: 6
+                        }
+                    },
+                    y: {
+                        grid: { color: "#2a2a2a" },
+                        ticks: {
+                            color: "#71717a",
+                            font: { family: "JetBrains Mono", size: 9 },
+                            callback: function(valeur) { return formaterNombre(valeur); }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (erreur) {
+        widget.style.display = "none";
+        console.error("Erreur npm:", erreur);
+    }
+}
+
+// --- Lancement ---
+initialiserEntete();
+chargerStatsTechno();
+chargerDerniereRelease();
+chargerGraphiqueCommits();
+chargerComparaison();
+chargerFluxRss();
+chargerIssuesAuto();
+chargerStackOverflow();
+chargerNpmDownloads();
+</script>
+
+</body>
+</html>
