@@ -1,0 +1,64 @@
+name: Surveillance des releases
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'    # Lundis 9h UTC
+  workflow_dispatch:
+
+jobs:
+  verifier-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier la dernière release
+        id: check
+        run: |
+          REPO="godotengine/godot"
+
+          RELEASE=$(curl -s \
+            "https://api.github.com/repos/$REPO/releases/latest")
+
+          VERSION=$(echo $RELEASE | jq -r '.tag_name')
+          DATE=$(echo $RELEASE | jq -r '.published_at')
+          URL=$(echo $RELEASE | jq -r '.html_url')
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Créer un Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.check.outputs.version }}';
+            const date = '${{ steps.check.outputs.date }}';
+            const url = '${{ steps.check.outputs.url }}';
+
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'veille-auto', state: 'all' });
+
+            const existe = issues.data.some(
+              i => i.title.includes(version));
+
+            if (!existe) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Release : ${version}`,
+                body: `**Version :** ${version}\n`
+                  + `**Date :** ${date}\n`
+                  + `**Lien :** ${url}`,
+                labels: ['veille-auto']
+              });
+            }
+
+      - name: Poster dans Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          VERSION="${{ steps.check.outputs.version }}"
+          URL="${{ steps.check.outputs.url }}"
+          curl -H "Content-Type: application/json" \
+            -d "{\"content\":\"\ud83d\udce6 **Release $VERSION**\n$URL\"}" \
+            $WEBHOOK
