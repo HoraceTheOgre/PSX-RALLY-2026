@@ -11,12 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Audit NuGet
+        run: |
+          run: dotnet list package --vulnerable > rapport.txt || true
 
-       - name: Audit NuGet
-         run: dotnet list package --vulnerable > rapport.txt || true
 
 
 
+    
       - name: Créer Issue
         uses: actions/github-script@v7
         with:
