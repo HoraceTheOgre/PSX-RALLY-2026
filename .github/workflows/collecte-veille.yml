@@ -22,7 +22,7 @@ jobs:
           TECHNO="godotengine/godot"
           CONCURRENT1="bevyengine/bevy"
           CONCURRENT2="stride3d/stride"
-          CONCURRENT3=""
+          CONCURRENT3="defold/defold"
           # ====================================
 
           # Stats de la techno principale
