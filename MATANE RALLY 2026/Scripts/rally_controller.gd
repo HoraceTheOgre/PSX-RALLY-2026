@@ -149,6 +149,9 @@ func _ready() -> void:
 	wheels[3].position.x = -wheels[2].position.x
 	wheels[1].position.z =  wheels[0].position.z
 	wheels[3].position.z =  wheels[2].position.z
+	
+	wheels[1].position.y = wheels[0].position.y
+	wheels[3].position.y = wheels[2].position.y
 
 	var mesh_list = [mesh_fl, mesh_fr, mesh_rl, mesh_rr]
 	for mesh in mesh_list:
