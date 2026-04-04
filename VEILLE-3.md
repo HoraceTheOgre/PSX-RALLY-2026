@@ -11,3 +11,6 @@ https://github.com/cegepmatane/projet-specialise-HoraceTheOgre/blob/main/.github
 https://gemini.google.com/share/d42febae213b
 
 https://cegepmatane.github.io/projet-specialise-HoraceTheOgre/
+
+
+J'ai corriger va veille techno 2
