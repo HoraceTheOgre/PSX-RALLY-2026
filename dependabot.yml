@@ -1,0 +1,10 @@
+version: 2
+updates:
+ # C# / NuGet (Godot)
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "veille-auto"
