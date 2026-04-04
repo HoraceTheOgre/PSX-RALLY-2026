@@ -5,21 +5,23 @@ extends Node
 @export var car: NodePath
 @export var countdown_duration: float = 6.0
 
+signal waiting_for_handbrake
+signal countdown_started
 signal car_released
+
 var _timer: float = 0.0
 var _released: bool = false
 var _frozen: bool = false
+var _countdown_active: bool = false
 var _car_node: RigidBody3D
 
 func _ready() -> void:
-	# co-pilot check
 	if copilot:
 		get_node(copilot).start()
 		print("[StageStart] Co-pilot started.")
 	else:
 		push_warning("[StageStart] No copilot path assigned.")
 
-	#input block and getting car node
 	if car:
 		_car_node = get_node(car)
 		_car_node.input_blocked = true
@@ -37,16 +39,24 @@ func _process(delta: float) -> void:
 			_car_node.freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
 			_car_node.freeze = true
 			_frozen = true
-			print("[StageStart] Car settled and frozen — releasing in %.0fs." % countdown_duration)
+			emit_signal("waiting_for_handbrake")
+			print("[StageStart] Car settled. Waiting for handbrake.")
 
-	# Only start countdown once frozen
-	if _frozen:
-		_timer += delta
-		if _timer >= countdown_duration:
-			_release_car()
+	# Wait for player handbrake input to start the countdown
+	if _frozen and not _released:
+		if not _countdown_active:
+			if Input.is_action_pressed("handbrake"):
+				_countdown_active = true
+				emit_signal("countdown_started")
+				if copilot:
+					get_node(copilot).activate_triggers()
+				print("[StageStart] Handbrake pulled. Countdown started!")
+		else:
+			_timer += delta
+			if _timer >= countdown_duration:
+				_release_car()
 
 func _release_car() -> void:
-	#releases car after 6 seconds
 	_released = true
 	if _car_node:
 		_car_node.freeze = false

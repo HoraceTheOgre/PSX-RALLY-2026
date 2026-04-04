@@ -6,9 +6,7 @@ extends Node
 # ==============================================================================
 
 @export_group("Gears")
-
 @export var gear_speeds: Array[float] = [0.0, 35.0, 65.0, 100.0, 140.0, 180.0, 220.0]
-#controls pitch drop
 @export var shift_dip_duration: float = 0.18
 @export var shift_dip_amount: float   = 0.80
 
@@ -51,13 +49,14 @@ func _ready() -> void:
 	_engine.play()
 
 # UPDATE
-
 func _process(delta: float) -> void:
 	if not _car:
 		return
 
 	var speed_kph = _car.linear_velocity.length() * 3.6
-	var throttle  = Input.get_action_strength("accelerate") if not _car.input_blocked else 0.0
+	
+	# We now read throttle regardless of input_blocked so you can rev the engine.
+	var throttle  = Input.get_action_strength("accelerate") 
 
 	# --- Gear detection ---
 	var new_gear = _get_gear(speed_kph)
@@ -69,9 +68,15 @@ func _process(delta: float) -> void:
 		_shift_timer -= delta
 
 	# --- Pitch ---
-	var gear_min  = gear_speeds[_current_gear]
-	var gear_max  = gear_speeds[min(_current_gear + 1, gear_speeds.size() - 1)]
-	var rpm_ratio = clamp((speed_kph - gear_min) / max(gear_max - gear_min, 1.0), 0.0, 1.0)
+	var rpm_ratio: float = 0.0
+	
+	# If the car is blocked on the start line, simulate free-revving
+	if _car.input_blocked:
+		rpm_ratio = throttle
+	else:
+		var gear_min  = gear_speeds[_current_gear]
+		var gear_max  = gear_speeds[min(_current_gear + 1, gear_speeds.size() - 1)]
+		rpm_ratio = clamp((speed_kph - gear_min) / max(gear_max - gear_min, 1.0), 0.0, 1.0)
 
 	var throttle_pitch_boost = throttle * 0.15
 	var target_pitch = lerp(engine_pitch_min, engine_pitch_max, rpm_ratio) + throttle_pitch_boost
@@ -93,7 +98,9 @@ func _process(delta: float) -> void:
 		target_engine_db = -20.0
 		target_idle_db   = idle_volume_run_db
 	else:
-		var blend        = clamp(speed_kph / 20.0, 0.0, 1.0)
+		# Added throttle to the blend calculation so the engine sound 
+		# fades in even if the car isn't moving yet.
+		var blend        = clamp((speed_kph / 20.0) + throttle, 0.0, 1.0)
 		target_engine_db = lerp(-80.0, lerp(engine_volume_idle_db, engine_volume_full_db, throttle), blend)
 		target_idle_db   = lerp(idle_volume_run_db, -80.0, blend)
 

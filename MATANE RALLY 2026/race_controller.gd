@@ -33,13 +33,14 @@ var _last_note_idx: int   = -1
 var _best_time:     float = -1.0
 var _stage_id:      String = "stage_01"
 
-# UI — assign these in the Inspector after saving HUD.tscn
+# UI
 @export var _timer_label:   Label
 @export var _penalty_label: Label
 @export var _result_label:  Label
 @export var _diff_label:    Label
 @export var _best_label:    Label
 @export var _retry_button:  Button
+@export var _prompt_label:  Label # NEW: Assign a Label for "HOLD HANDBRAKE"
 
 # ==============================================================================
 # READY
@@ -53,12 +54,19 @@ func _ready() -> void:
 	_diff_label.visible    = false
 	_best_label.visible    = false
 	_retry_button.visible  = false
+	
+	if _prompt_label:
+		_prompt_label.visible = false
+		
 	_timer_label.text      = "00:00.00"
 
 	_retry_button.pressed.connect(_on_retry)
 
 	if stage_start:
 		stage_start.car_released.connect(_on_car_released)
+		# Connect new signals for the handbrake UI
+		stage_start.waiting_for_handbrake.connect(_on_waiting_for_handbrake)
+		stage_start.countdown_started.connect(_on_countdown_started)
 	else:
 		push_warning("[RaceController] No stage_start assigned.")
 
@@ -73,7 +81,7 @@ func _ready() -> void:
 		push_warning("[RaceController] No slow_zone assigned.")
 
 # ==============================================================================
-# PROCESS
+# PROCESS & TIMER
 # ==============================================================================
 
 func _process(delta: float) -> void:
@@ -85,10 +93,6 @@ func _process(delta: float) -> void:
 		_penalty_timer -= delta
 		if _penalty_timer <= 0.0:
 			_penalty_label.visible = false
-
-# ==============================================================================
-# TIMER DISPLAY
-# ==============================================================================
 
 func _update_timer_display(total_seconds: float, label: Label) -> void:
 	var minutes    = int(total_seconds) / 60
@@ -105,6 +109,15 @@ func _format_time(total_seconds: float) -> String:
 # ==============================================================================
 # SIGNALS
 # ==============================================================================
+
+func _on_waiting_for_handbrake() -> void:
+	if _prompt_label:
+		_prompt_label.text = "PULL HANDBRAKE TO START"
+		_prompt_label.visible = true
+
+func _on_countdown_started() -> void:
+	if _prompt_label:
+		_prompt_label.visible = false
 
 func _on_car_released() -> void:
 	_running = true
@@ -123,7 +136,6 @@ func _on_note_called(note) -> void:
 				_penalty_label.text    = "+%.0fs PENALTY" % batch_penalty
 				_penalty_label.visible = true
 				_penalty_timer         = penalty_display_duration
-				print("[RaceController] %d notes missed — +%.0fs — total: %.0fs" % [missed_count, batch_penalty, _penalties])
 			_last_note_idx = i
 			break
 
@@ -174,8 +186,6 @@ func _show_result() -> void:
 	_timer_label.visible  = false
 	_retry_button.visible = true
 
-	print("[RaceController] Stage complete — Final: %s" % _format_time(final_time))
-
 # ==============================================================================
 # RETRY
 # ==============================================================================
@@ -206,15 +216,14 @@ func _on_retry() -> void:
 		car.call_deferred("set_global_rotation_degrees", retry_rotation)
 
 	if stage_start:
-		stage_start._released  = false
-		stage_start._frozen    = false
-		stage_start._timer     = 0.0
+		stage_start._released         = false
+		stage_start._frozen           = false
+		stage_start._countdown_active = false
+		stage_start._timer            = 0.0
 		stage_start._car_node.input_blocked = true
 		if copilot:
 			copilot.stop()
 			copilot.start()
-
-	print("[RaceController] Retry — car reset to start.")
 
 # ==============================================================================
 # PERSISTENCE
@@ -229,4 +238,3 @@ func _load_best_time() -> void:
 	var config = ConfigFile.new()
 	if config.load(SAVE_PATH) == OK:
 		_best_time = config.get_value("times", _stage_id, -1.0)
-	print("[RaceController] Best time loaded: %s" % (_format_time(_best_time) if _best_time > 0 else "none"))

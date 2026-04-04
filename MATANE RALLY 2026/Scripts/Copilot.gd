@@ -23,6 +23,7 @@ var _car_node: RigidBody3D
 var _notes: Array[PaceNote] = []
 var _last_call_time: float = -999.0
 var _running: bool = false
+var _triggers_active: bool = false # NEW: Blocks early triggers
 var _stop_timer: Timer
 var _current_note: PaceNote = null
 
@@ -58,17 +59,30 @@ func start() -> void:
 
 	# Assign the stream once and leave it — we seek into it each time
 	voice_player.stream = note_book.audio_file
-	# Autoplay must be OFF on the AudioStreamPlayer node, we call play() manually
 	voice_player.autoplay = false
 
 	_connect_triggers()
 	_running = true
-	print("[CoPilot] Ready — %d notes loaded." % _notes.size())
+	_triggers_active = false # Reset on stage start or retry
+	print("[CoPilot] Ready — %d notes loaded. Waiting for triggers to activate." % _notes.size())
 
 func stop() -> void:
 	_running = false
+	_triggers_active = false
 	_stop_timer.stop()
 	voice_player.stop()
+
+func activate_triggers() -> void:
+	_triggers_active = true
+	print("[CoPilot] Triggers active.")
+	var parent = get_node_or_null(triggers_parent)
+	if parent:
+		for i in range(_notes.size()):
+			var area: Area3D = parent.get_node_or_null("PaceNoteTrigger_%d" % i)
+			# If the car is currently overlapping this trigger, manually fire the function
+			if area and _car_node in area.get_overlapping_bodies():
+				print("[CoPilot] Car already inside trigger %d. Firing manually." % i)
+				_on_trigger_entered(_car_node, i)
 
 # ==============================================================================
 # TRIGGERS
@@ -89,7 +103,8 @@ func _connect_triggers() -> void:
 			area.body_entered.connect(_on_trigger_entered.bind(i))
 
 func _on_trigger_entered(body: Node3D, note_index: int) -> void:
-	if not _running or body != _car_node:
+	# NEW: Now checks if _triggers_active is true
+	if not _running or not _triggers_active or body != _car_node:
 		return
 	var now = Time.get_ticks_msec() / 1000.0
 	if now - _last_call_time < min_call_gap_seconds:
