@@ -423,7 +423,7 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 
 	if is_handbrake_active and index >= 2:
 		# Near-zero rear lateral grip: rear breaks free immediately and rotates freely
-		lat_force_mag *= 0.05
+		lat_force_mag *= 0.0
 
 	var lat_force_vec = -right_dir * lat_force_mag
 	total_lat_force  += abs(lat_force_mag)
@@ -521,8 +521,8 @@ func apply_tire_force(wheel: RayCast3D, index: int, throttle: float, brake: floa
 		if is_handbrake_active and index >= 2:
 			# High longitudinal cap: lets the locking force fully overwhelm rear grip -> spin
 			# Very low lateral cap: rear has almost no sideways resistance -> rotates freely
-			drive_force_mag = clamp(drive_force_mag, -longitudinal_limit * 3.0,  longitudinal_limit * 3.0)
-			lat_force_mag   = clamp(lat_force_mag,   -lateral_limit      * 0.05, lateral_limit      * 0.05)
+			drive_force_mag = clamp(drive_force_mag, -longitudinal_limit * 0.6,  longitudinal_limit * 0.6)
+			lat_force_mag   = clamp(lat_force_mag,   -lateral_limit      * 0.0, lateral_limit      * 0.0)
 		elif is_braking:
 			drive_force_mag = clamp(drive_force_mag, -longitudinal_limit * 0.9,  longitudinal_limit * 0.9)
 			lat_force_mag   = clamp(lat_force_mag,   -lateral_limit,             lateral_limit)
