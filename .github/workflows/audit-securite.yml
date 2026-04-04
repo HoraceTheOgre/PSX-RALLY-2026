@@ -12,7 +12,6 @@ jobs:
       - uses: actions/checkout@v4
 
 
-      # --- C# / Godot ---
        - name: Audit NuGet
          run: dotnet list package --vulnerable > rapport.txt || true
 
