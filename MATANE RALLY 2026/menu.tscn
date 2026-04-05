@@ -33,7 +33,14 @@ text = "Options"
 layout_mode = 2
 text = "Quitter"
 
+[node name="Credit" type="Label" parent="VBoxContainer/MainPanel"]
+layout_mode = 2
+text = "Made by J-O Production Team"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="OptionsPanel" type="VBoxContainer" parent="VBoxContainer"]
+visible = false
 layout_mode = 2
 
 [node name="Volume" type="Label" parent="VBoxContainer/OptionsPanel"]
