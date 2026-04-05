@@ -177,6 +177,7 @@ func _physics_process(delta: float) -> void:
 	var steer_input     = Input.get_axis("steer_right", "steer_left") if not input_blocked else 0.0
 	is_handbrake_active = Input.is_action_pressed("handbrake")    and not input_blocked
 
+	
 	var speed_kph    = linear_velocity.length() * 3.6
 	var forward_dot  = linear_velocity.dot(-global_transform.basis.z)
 	var is_reversing = false
