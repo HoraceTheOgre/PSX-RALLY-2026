@@ -69,3 +69,5 @@ pause={
 
 common/physics_ticks_per_second=144
 3d/physics_engine="Jolt Physics"
+3d/icon="res://icon.svg"
+3d/name="MATANE RALLY 2026"

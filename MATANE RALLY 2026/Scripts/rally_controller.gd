@@ -772,9 +772,7 @@ func calculate_dynamic_torque_split(speed_kph: float) -> float:
 func get_velocity_at_point(point: Vector3) -> Vector3:
 	return linear_velocity + angular_velocity.cross(point - global_position)
 
-# ==============================================================================
 # PACEJKA
-# ==============================================================================
 
 func pacejka_formula(slip: float, p: Dictionary) -> float:
 	var x = slip * p.B
@@ -788,9 +786,7 @@ func _lerp_pacejka(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 		"E": lerp(a.E, b.E, t),
 	}
 
-# ==============================================================================
 # VISUALS
-# ==============================================================================
 
 func update_visuals(delta: float) -> void:
 	var mesh_list = [mesh_fl, mesh_fr, mesh_rl, mesh_rr]
