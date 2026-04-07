@@ -6,9 +6,13 @@ extends CanvasLayer
 
 @export_group("References")
 @export var stage_start: Node
+@export var stage_end:   Node 
 @export var copilot:     Node
 @export var car:         RigidBody3D
 @export var slow_zone:   Area3D
+@export var _pause_label:    Label
+@export var _continue_button: Button
+@export var _pause_retry_button: Button
 
 @export_group("Retry")
 @export var retry_position: Vector3
@@ -40,13 +44,14 @@ var _stage_id:      String = "stage_01"
 @export var _diff_label:    Label
 @export var _best_label:    Label
 @export var _retry_button:  Button
-@export var _prompt_label:  Label # NEW: Assign a Label for "HOLD HANDBRAKE"
+@export var _prompt_label:  Label 
 
 # ==============================================================================
 # READY
 # ==============================================================================
 
 func _ready() -> void:
+	
 	_load_best_time()
 
 	_penalty_label.visible = false
@@ -79,12 +84,23 @@ func _ready() -> void:
 		slow_zone.body_entered.connect(_on_slow_zone_entered)
 	else:
 		push_warning("[RaceController] No slow_zone assigned.")
+	if _pause_label:
+		_pause_label.visible = false
+	if _continue_button:
+		_continue_button.visible = false
+		_continue_button.pressed.connect(_on_continue)
+	if _pause_retry_button:
+		_pause_retry_button.visible = false
+		_pause_retry_button.pressed.connect(_on_retry)
 
 # ==============================================================================
 # PROCESS & TIMER
 # ==============================================================================
 
 func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
+		
 	if _running and not _finished:
 		_elapsed += delta
 		_update_timer_display(_elapsed + _penalties, _timer_label)
@@ -93,6 +109,32 @@ func _process(delta: float) -> void:
 		_penalty_timer -= delta
 		if _penalty_timer <= 0.0:
 			_penalty_label.visible = false
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause"):
+		if get_tree().paused:
+			_toggle_pause()                     
+		elif _running and not _finished:
+			_toggle_pause()   
+			
+func _toggle_pause() -> void:
+	get_tree().paused = not get_tree().paused
+	var is_paused = get_tree().paused
+	if _pause_label:
+		_pause_label.visible = is_paused
+	if _continue_button:
+		_continue_button.visible = is_paused
+	if _pause_retry_button:
+		_pause_retry_button.visible = is_paused
+
+func _on_continue() -> void:
+	get_tree().paused = false
+	if _pause_label:
+		_pause_label.visible = false
+	if _continue_button:
+		_continue_button.visible = false
+	if _pause_retry_button:         
+		_pause_retry_button.visible = false
 
 func _update_timer_display(total_seconds: float, label: Label) -> void:
 	var minutes    = int(total_seconds) / 60
@@ -112,7 +154,8 @@ func _format_time(total_seconds: float) -> String:
 
 func _on_waiting_for_handbrake() -> void:
 	if _prompt_label:
-		_prompt_label.text = "PULL HANDBRAKE TO START"
+		_prompt_label.text = "PULL HANDBRAKE TO START 
+		(Space or Down JoyPad Button)"
 		_prompt_label.visible = true
 
 func _on_countdown_started() -> void:
@@ -191,6 +234,14 @@ func _show_result() -> void:
 # ==============================================================================
 
 func _on_retry() -> void:
+	get_tree().paused = false
+	if _pause_label:
+		_pause_label.visible = false
+	if _continue_button:
+		_continue_button.visible = false
+	if _pause_retry_button:      
+		_pause_retry_button.visible = false
+		
 	_result_label.visible  = false
 	_diff_label.visible    = false
 	_best_label.visible    = false
@@ -224,6 +275,10 @@ func _on_retry() -> void:
 		if copilot:
 			copilot.stop()
 			copilot.start()
+	if stage_end:
+		stage_end.reset()
+		
+
 
 # ==============================================================================
 # PERSISTENCE

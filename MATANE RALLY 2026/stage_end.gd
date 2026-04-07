@@ -40,6 +40,17 @@ func _ready() -> void:
 	else:
 		push_warning("[StageEnd] No stop zone assigned.")
 
+func reset() -> void:
+	_state = State.NONE
+	if car:
+		car.input_blocked = false
+	if slow_zone:
+		slow_zone.monitoring = false
+		slow_zone.monitoring = true
+	if stop_zone:
+		stop_zone.monitoring = false
+		stop_zone.monitoring = true
+	print("[StageEnd] Reset — ready for next run.")
 # ==============================================================================
 # PHYSICS
 # ==============================================================================
