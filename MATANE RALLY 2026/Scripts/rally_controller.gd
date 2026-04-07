@@ -780,7 +780,6 @@ func pacejka_formula(slip: float, p: Dictionary) -> float:
 	var x = slip * p.B
 	return p.D * sin(p.C * atan(x - p.E * (x - atan(x))))
 
-## Linearly interpolates two Pacejka parameter dicts by [t].
 func _lerp_pacejka(a: Dictionary, b: Dictionary, t: float) -> Dictionary:
 	return {
 		"B": lerp(a.B, b.B, t),

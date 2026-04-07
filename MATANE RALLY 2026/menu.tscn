@@ -23,7 +23,7 @@ horizontal_alignment = 1
 
 [node name="PlayButton" type="Button" parent="VBoxContainer/MainPanel"]
 layout_mode = 2
-text = "Jouer"
+text = "Play"
 
 [node name="OptionsButton" type="Button" parent="VBoxContainer/MainPanel"]
 layout_mode = 2
@@ -31,7 +31,7 @@ text = "Options"
 
 [node name="QuitButton" type="Button" parent="VBoxContainer/MainPanel"]
 layout_mode = 2
-text = "Quitter"
+text = "Quit"
 
 [node name="Credit" type="Label" parent="VBoxContainer/MainPanel"]
 layout_mode = 2
